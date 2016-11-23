@@ -1,7 +1,7 @@
-# type-operators
-
 [![Build Status](https://travis-ci.org/sdleffler/type-operators-rs.svg?branch=master)](https://travis-ci.org/sdleffler/type-operators-rs)
 [![Docs Status](https://docs.rs/type-operators/badge.svg)](https://docs.rs/type-operators)
+
+# type-operators
 
 ## The `type_operators` macro - a DSL for declaring type operators and type-level logic in Rust.
 
@@ -36,7 +36,7 @@ The second thing is the `data` declaration. This declares a group of structs whi
 In our case, `Nat` is the marker trait generated and `P`, `I`, and `O` are the structs generated. This example
 shows an implementation of natural numbers (positive integers, including zero) which are represented as types.
 So, `P` indicates the end of a natural number - think of it as a sort of nil; we're working with a linked list
-here, at the type level. So, `I<P>` would represent "one times twice `P`", which of course comes out to `1`;
+here, at the type level. So, `I<P>` would represent "one plus twice `P`", which of course comes out to `1`;
 `O<P>` would represent "twice `P`", which of course comes out to zero. If we look at `I` and `O` as bits of a
 binary number, we come out with a sort of reversed binary representation where the "bit" furthest to the left
 is the least significant bit. As such, `O<O<I>>` represents `4`, `I<O<O<I>>>` represents `9`, and so on.
