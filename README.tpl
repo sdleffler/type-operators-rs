@@ -1,4 +1,5 @@
 [![Build Status](https://travis-ci.org/sdleffler/type-operators-rs.svg?branch=master)](https://travis-ci.org/sdleffler/type-operators-rs)
+[![Docs Status](https://docs.rs/type-operators/badge.svg)](https://docs.rs/type-operators)
 
 {{readme}}
 
