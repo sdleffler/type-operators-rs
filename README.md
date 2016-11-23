@@ -1,5 +1,7 @@
 # type-operators
 
+[![Build Status](https://travis-ci.org/sdleffler/type-operators-rs.svg?branch=master)](https://travis-ci.org/sdleffler/type-operators-rs)
+
 ## The `type_operators` macro - a DSL for declaring type operators and type-level logic in Rust.
 
 This crate contains a macro for declaring type operators in Rust. Type operators are like functions

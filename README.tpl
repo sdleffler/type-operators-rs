@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/sdleffler/type-operators-rs.svg?branch=master)](https://travis-ci.org/sdleffler/type-operators-rs)
+
 {{readme}}
 
 ## License
