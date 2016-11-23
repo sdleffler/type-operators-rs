@@ -404,19 +404,19 @@
 /// ```
 #[macro_export]
 macro_rules! type_operators {
-    ($gensym:tt data $name:ident { $($stuff:tt)* } $($rest:tt)*) => {
+    ($gensym:tt $(#[$attr:meta])* data $name:ident { $($stuff:tt)* } $($rest:tt)*) => {
         pub trait $name {}
 
-        _tlsm_data!($name $gensym $($stuff)*);
+        _tlsm_data!([$name $($attr)*] $gensym $($stuff)*);
         type_operators!($gensym $($rest)*);
     };
 
-    ($gensym:tt concrete $name:ident => $output:ty { $($stuff:tt)* } $($rest:tt)*) => {
+    ($gensym:tt $(#[$attr:meta])* concrete $name:ident => $output:ty { $($stuff:tt)* } $($rest:tt)*) => {
         pub trait $name {
             fn reify() -> $output;
         }
 
-        _tlsm_concrete!($name $output; $gensym $($stuff)*);
+        _tlsm_concrete!([$name $($attr)*] $output; $gensym $($stuff)*);
         type_operators!($gensym $($rest)*);
     };
 
@@ -597,43 +597,48 @@ macro_rules! _tlsm_machine {
 
 #[macro_export]
 macro_rules! _tlsm_data {
-    ($group:ident @parameterized $name:ident [$gensym:ident $(, $next:ident)*] [$($args:tt)*] [$($bounds:tt)*] [$($phantom:tt)*] $kind:ident = $default:ty $(, $($rest:tt)*)*) => {
-        _tlsm_data!($group @parameterized $name [$($next),*] [$($args)* ($gensym: $kind = $default)] [$($bounds)* ($gensym: $kind)] [$($phantom)* ($gensym)] $($($rest)*),*);
+    ($attrs:tt @parameterized $name:ident [$gensym:ident $(, $next:ident)*] [$($args:tt)*] [$($bounds:tt)*] [$($phantom:tt)*] $kind:ident = $default:ty $(, $($rest:tt)*)*) => {
+        _tlsm_data!($attrs @parameterized $name [$($next),*] [$($args)* ($gensym: $kind = $default)] [$($bounds)* ($gensym: $kind)] [$($phantom)* ($gensym)] $($($rest)*),*);
     };
-    ($group:ident @parameterized $name:ident [$gensym:ident $(, $next:ident)*] [$($args:tt)*] [$($bounds:tt)*] [$($phantom:tt)*] $kind:ident $($rest:tt)*) => {
-        _tlsm_data!($group @parameterized $name [$($next),*] [$($args)* ($gensym: $kind)] [$($bounds)* ($gensym: $kind)] [$($phantom)* ($gensym)] $($rest)*);
+    ($attrs:tt @parameterized $name:ident [$gensym:ident $(, $next:ident)*] [$($args:tt)*] [$($bounds:tt)*] [$($phantom:tt)*] $kind:ident $($rest:tt)*) => {
+        _tlsm_data!($attrs @parameterized $name [$($next),*] [$($args)* ($gensym: $kind)] [$($bounds)* ($gensym: $kind)] [$($phantom)* ($gensym)] $($rest)*);
     };
-    ($group:ident @parameterized $name:ident $gensyms:tt [$(($($args:tt)*))*] [$(($($bounds:tt)*))*] [$(($($phantom:tt)*))*]) => {
+    ([$group:ident $($attr:meta)*] @parameterized $name:ident $gensyms:tt [$(($($args:tt)*))*] [$(($($bounds:tt)*))*] [$(($($phantom:tt)*))*]) => {
+        $(#[$attr])*
         pub struct $name < $($($args)*),* >(::std::marker::PhantomData<($($($phantom)*),*)>);
+
         impl< $($($bounds)*),* > $group for $name<$($($phantom)*),*> {}
     };
-    ($group:ident $gensym:tt $name:ident, $($rest:tt)*) => {
+    ([$group:ident $($attr:meta)*] $gensym:tt $name:ident, $($rest:tt)*) => {
+        $(#[$attr])*
         pub struct $name;
+
         impl $group for $name {}
-        _tlsm_data!($group $gensym $($rest)*);
+        _tlsm_data!([$group $($attr)*] $gensym $($rest)*);
     };
-    ($group:ident $gensym:tt $name:ident($($args:tt)*), $($rest:tt)*) => {
-        _tlsm_data!($group @parameterized $name $gensym [] [] [] $($args)*);
-        _tlsm_data!($group $gensym $($rest)*);
+    ($attrs:tt $gensym:tt $name:ident($($args:tt)*), $($rest:tt)*) => {
+        _tlsm_data!($attrs @parameterized $name $gensym [] [] [] $($args)*);
+        _tlsm_data!($attrs $gensym $($rest)*);
     };
-    ($group:ident $gensym:tt) => {};
+    ($attrs:tt $gensym:tt) => {};
 }
 
 #[macro_export]
 macro_rules! _tlsm_concrete {
-    ($group:ident $output:ty; @parameterized $name:ident => $value:expr; $gensym:tt [$($args:tt)*] [$($bounds:tt)*] [$($syms:ident)*] $sym:ident: $kind:ident = $default:ty $(, $($rest:tt)*)*) => {
-        _tlsm_concrete!($group $output; @parameterized $name => $value; $gensym [$($args)* ($sym: $kind = $default)] [$($bounds)* ($sym: $kind)] [$($syms)* $sym] $($($rest)*),*);
+    ($attrs:tt $output:ty; @parameterized $name:ident => $value:expr; $gensym:tt [$($args:tt)*] [$($bounds:tt)*] [$($syms:ident)*] $sym:ident: $kind:ident = $default:ty $(, $($rest:tt)*)*) => {
+        _tlsm_concrete!($attrs $output; @parameterized $name => $value; $gensym [$($args)* ($sym: $kind = $default)] [$($bounds)* ($sym: $kind)] [$($syms)* $sym] $($($rest)*),*);
     };
-    ($group:ident $output:ty; @parameterized $name:ident => $value:expr; $gensym:tt [$($args:tt)*] [$($bounds:tt)*] [$($syms:ident)*] $sym:ident: $kind:ident $(, $($rest:tt)*)*) => {
-        _tlsm_concrete!($group $output; @parameterized $name => $value; $gensym [$($args)* ($sym: $kind)] [$($bounds)* ($sym: $kind)] [$($syms)* $sym] $($($rest)*),*);
+    ($attrs:tt $output:ty; @parameterized $name:ident => $value:expr; $gensym:tt [$($args:tt)*] [$($bounds:tt)*] [$($syms:ident)*] $sym:ident: $kind:ident $(, $($rest:tt)*)*) => {
+        _tlsm_concrete!($attrs $output; @parameterized $name => $value; $gensym [$($args)* ($sym: $kind)] [$($bounds)* ($sym: $kind)] [$($syms)* $sym] $($($rest)*),*);
     };
-    ($group:ident $output:ty; @parameterized $name:ident => $value:expr; [$gensym:ident $(, $next:ident)*] [$($args:tt)*] [$($bounds:tt)*] $syms:tt $kind:ident = $default:ty $(, $($rest:tt)*)*) => {
-        _tlsm_concrete!($group $output; @parameterized $name => $value; [$($next),*] [$($args)* ($gensym: $kind = $default)] [$($bounds)* ($gensym: $kind)] $syms $($($rest)*),*);
+    ($attrs:tt $output:ty; @parameterized $name:ident => $value:expr; [$gensym:ident $(, $next:ident)*] [$($args:tt)*] [$($bounds:tt)*] $syms:tt $kind:ident = $default:ty $(, $($rest:tt)*)*) => {
+        _tlsm_concrete!($attrs $output; @parameterized $name => $value; [$($next),*] [$($args)* ($gensym: $kind = $default)] [$($bounds)* ($gensym: $kind)] $syms $($($rest)*),*);
     };
-    ($group:ident $output:ty; @parameterized $name:ident => $value:expr; [$gensym:ident $(, $next:ident)*] [$($args:tt)*] [$($bounds:tt)*] $syms:tt $kind:ident $(, $($rest:tt)*)*) => {
-        _tlsm_concrete!($group $output; @parameterized $name => $value; [$($next),*] [$($args)* ($gensym: $kind)] [$($bounds)* ($gensym: $kind)] $syms $($($rest)*),*);
+    ($attrs:tt $output:ty; @parameterized $name:ident => $value:expr; [$gensym:ident $(, $next:ident)*] [$($args:tt)*] [$($bounds:tt)*] $syms:tt $kind:ident $(, $($rest:tt)*)*) => {
+        _tlsm_concrete!($attrs $output; @parameterized $name => $value; [$($next),*] [$($args)* ($gensym: $kind)] [$($bounds)* ($gensym: $kind)] $syms $($($rest)*),*);
     };
-    ($group:ident $output:ty; @parameterized $name:ident => $value:expr; $gensyms:tt [$(($tysym:ident: $($args:tt)*))*] [$(($bsym:ident: $bound:ident))*] [$($sym:ident)*]) => {
+    ([$group:ident $($attr:meta)*] $output:ty; @parameterized $name:ident => $value:expr; $gensyms:tt [$(($tysym:ident: $($args:tt)*))*] [$(($bsym:ident: $bound:ident))*] [$($sym:ident)*]) => {
+        $(#[$attr])*
         pub struct $name < $($tysym: $($args)*),* >(::std::marker::PhantomData<($($tysym),*)>);
 
         impl< $($bsym: $bound),* > $group for $name<$($bsym),*> {
@@ -641,18 +646,190 @@ macro_rules! _tlsm_concrete {
             fn reify() -> $output { $(let $sym = <$sym>::reify();)* $value }
         }
     };
-    ($group:ident $output:ty; $gensym:tt $name:ident => $value:expr, $($rest:tt)*) => {
+    ([$group:ident $($attr:meta)*] $output:ty; $gensym:tt $name:ident => $value:expr, $($rest:tt)*) => {
+        $(#[$attr])*
         pub struct $name;
 
         impl $group for $name {
             fn reify() -> $output { $value }
         }
 
-        _tlsm_concrete!($group $output; $gensym $($rest)*);
+        _tlsm_concrete!([$group $($attr)*] $output; $gensym $($rest)*);
     };
-    ($group:ident $output:ty; $gensym:tt $name:ident($($args:tt)*) => $value:expr, $($rest:tt)*) => {
-        _tlsm_concrete!($group $output; @parameterized $name => $value; $gensym [] [] [] $($args)*);
-        _tlsm_concrete!($group $output; $gensym $($rest)*);
+    ($attrs:tt $output:ty; $gensym:tt $name:ident($($args:tt)*) => $value:expr, $($rest:tt)*) => {
+        _tlsm_concrete!($attrs $output; @parameterized $name => $value; $gensym [] [] [] $($args)*);
+        _tlsm_concrete!($attrs $output; $gensym $($rest)*);
     };
-    ($group:ident $output:ty; $gensym:tt) => {};
+    ($attrs:tt $output:ty; $gensym:tt) => {};
+}
+
+
+#[cfg(test)]
+mod tests_1 {
+    use super::*;
+
+    type_operators! {
+        [A, B, C, D, E] // The gensym list. Be careful not to have these collide with your struct names!
+        // If I used `data` instead of concrete, no automatic `reify` function would be provided.
+        // But since I did, we have a sort of inductive thing going on here, by which we can transform
+        // any instance of this type into the reified version.
+        // data Nat {
+        //     P,
+        //     I(Nat = P),
+        //     O(Nat = P),
+        // }
+        concrete Nat => usize {
+            P => 0,
+            I(N: Nat = P) => 1 + 2 * N,
+            O(N: Nat = P) => 2 * N,
+            Undefined => panic!("Undefined type-level arithmetic result!"),
+        }
+        // It's not just for natural numbers! Yes, we can do all sorts of logic here. However, in
+        // this example, `Bool` is used later on in implementations that are hidden from you due
+        // to their complexity.
+        concrete Bool => bool {
+            False => false,
+            True => true,
+        }
+        (Pred) Predecessor(Nat): Nat {
+            [Undefined] => Undefined
+            [P] => Undefined
+            forall (N: Nat) {
+                [(O N)] => (I (# N))
+                [(I N)] => (O N)
+            }
+        }
+        (Succ) Successor(Nat): Nat {
+            [Undefined] => Undefined
+            [P] => I
+            forall (N: Nat) {
+                [(O N)] => (I N)
+                [(I N)] => (O (# N))
+            }
+        }
+        (Sum) Adding(Nat, Nat): Nat {
+            [P, P] => P
+            forall (N: Nat) {
+                [(O N), P] => (O N)
+                [(I N), P] => (I N)
+                [P, (O N)] => (O N)
+                [P, (I N)] => (I N)
+            }
+            forall (N: Nat, M: Nat) {
+                [(O M), (O N)] => (O (# M N))
+                [(I M), (O N)] => (I (# M N))
+                [(O M), (I N)] => (I (# M N))
+                [(I M), (I N)] => (O (# (# M N) I))
+            }
+        }
+        (Difference) Subtracting(Nat, Nat): Nat {
+            forall (N: Nat) {
+                [N, P] => N
+            }
+            forall (N: Nat, M: Nat) {
+                [(O M), (O N)] => (O (# M N))
+                [(I M), (O N)] => (I (# M N))
+                [(O M), (I N)] => (I (# (# M N) I))
+                [(I M), (I N)] => (O (# M N))
+            }
+        }
+        (Product) Multiplying(Nat, Nat): Nat {
+            forall (N: Nat) {
+                [P, N] => P
+            }
+            forall (N: Nat, M: Nat) {
+                [(O M), N] => (# M (O N))
+                [(I M), N] => (@Adding N (# M (O N)))
+            }
+        }
+        (If) NatIf(Bool, Nat, Nat): Nat {
+            forall (T: Nat, U: Nat) {
+                [True, T, U] => T
+                [False, T, U] => U
+            }
+        }
+        (NatIsUndef) NatIsUndefined(Nat): Bool {
+            [Undefined] => True
+            [P] => False
+            forall (M: Nat) {
+                [(O M)] => False
+                [(I M)] => False
+            }
+        }
+        (NatUndef) NatUndefined(Nat, Nat): Nat {
+            forall (M: Nat) {
+                [Undefined, M] => Undefined
+                [P, M] => M
+            }
+            forall (M: Nat, N: Nat) {
+                [(O N), M] => M
+                [(I N), M] => M
+            }
+        }
+        (TotalDifference) TotalSubtracting(Nat, Nat): Nat {
+            [P, P] => P
+            [Undefined, P] => Undefined
+            forall (N: Nat) {
+                [N, Undefined] => Undefined
+                [P, (O N)] => (# P N)
+                [P, (I N)] => Undefined
+                [(O N), P] => (O N)
+                [(I N), P] => (I N)
+                [Undefined, (O N)] => Undefined
+                [Undefined, (I N)] => Undefined
+            }
+            forall (N: Nat, M: Nat) {
+                [(O M), (O N)] => (@NatUndefined (# M N) (O (# M N)))
+                [(I M), (O N)] => (@NatUndefined (# M N) (I (# M N)))
+                [(O M), (I N)] => (@NatUndefined (# (# M N) I) (I (# (# M N) I)))
+                [(I M), (I N)] => (@NatUndefined (# M N) (O (# M N)))
+            }
+        }
+        (Quotient) Quotienting(Nat, Nat): Nat {
+            forall (D: Nat) {
+                [Undefined, D] => Undefined
+                [P, D] => (@NatIf (@NatIsUndefined (@TotalSubtracting P D)) O (@Successor (# (@TotalSubtracting P D) D)))
+            }
+            forall (N: Nat, D: Nat) {
+                [(O N), D] => (@NatIf (@NatIsUndefined (@TotalSubtracting (O N) D)) O (@Successor (# (@TotalSubtracting (O N) D) D)))
+                [(I N), D] => (@NatIf (@NatIsUndefined (@TotalSubtracting (I N) D)) O (@Successor (# (@TotalSubtracting (I N) D) D)))
+            }
+        }
+        (Remainder) Remaindering(Nat, Nat): Nat {
+            forall (D: Nat) {
+                [Undefined, D] => Undefined
+                [P, D] => (@NatIf (@NatIsUndefined (@TotalSubtracting P D)) P (# (@TotalSubtracting P D) D))
+            }
+            forall (N: Nat, D: Nat) {
+                [(O N), D] => (@NatIf (@NatIsUndefined (@TotalSubtracting (O N) D)) (O N) (# (@TotalSubtracting (O N) D) D))
+                [(I N), D] => (@NatIf (@NatIsUndefined (@TotalSubtracting (I N) D)) (I O) (# (@TotalSubtracting (I N) D) D))
+            }
+        }
+    }
+
+    fn invariants() {
+        assert_eq!(<I<I> as Nat>::reify(), 3);
+        assert_eq!(<I<O<I>> as Nat>::reify(), 5);
+        assert_eq!(<Sum<I<O<I>>, I<I>> as Nat>::reify(), 8);
+        assert_eq!(<Difference<I<I>, O<I>> as Nat>::reify(), 1);
+        assert_eq!(<Difference<O<O<O<I>>>, I<I>> as Nat>::reify(), 5);
+        assert_eq!(<Product<I<I>, I<O<I>>> as Nat>::reify(), 15);
+        assert_eq!(<Quotient<I<I>, O<I>> as Nat>::reify(), 1);
+        assert_eq!(<Remainder<I<O<O<I>>>, O<O<I>>> as Nat>::reify(), 1);
+    }
+}
+
+#[cfg(test)]
+mod tests_2 {
+    use super::*;
+
+    type_operators! {
+        [A, B, C, D, E]
+
+        data Nat {
+            P,
+            I(Nat = P),
+            O(Nat = P),
+        }
+    }
 }
