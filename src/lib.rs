@@ -116,7 +116,7 @@
 //! Now you're probably saying, "whoa! That doesn't look like Rust at all! Back up!" And that's because it *isn't.* I made
 //! a little LISP-like dialect to describe Rust types for this project because it makes things a lot easier to parse in
 //! macros; specifically, each little atomic type can be wrapped up in a pair of parentheses, while with angle brackets,
-//! Rust has to parse them as separate tokens. Anyways just trust me it makes it easier. In this setup, (O N) means `O<N>`,
+//! Rust has to parse them as separate tokens. In this setup, `(O N)` means `O<N>`,
 //! just `P` alone means `P`, etc. etc. The notation `[X, Y] => Z` means "given inputs `X` and `Y`, produce output `Z`." So
 //! it's a sort of pattern-matching.
 //!

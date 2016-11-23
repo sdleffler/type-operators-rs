@@ -11,7 +11,6 @@ traits and impls with associated types.
 Let's take a look at this fairly small example:
 
 ```rust
-# #[macro_use] extern crate type_operators;
 type_operators! {
     [A, B, C, D, E]
 
@@ -21,7 +20,6 @@ type_operators! {
         O(Nat = P),
     }
 }
-# fn main() {}
 ```
 
 There are two essential things to note in this example. The first is the "gensym list" - Rust does
@@ -45,8 +43,6 @@ When we write `I(Nat = P)`, the `= P` denotes a default. This lets us write `I`,
 here is (roughly) what the above invocation of `type_operators` expands to:
 
 ```rust
-# use std::marker::PhantomData;
-
 pub trait Nat {}
 
 pub struct P;
@@ -57,7 +53,6 @@ impl<A: Nat> Nat for I<A> {}
 
 pub struct O<A: Nat = P>(PhantomData<(A)>);
 impl<A: Nat> Nat for O<A> {}
-# fn main() {}
 ```
 
 The `Undefined` value looks a little silly, but it allows for the definition of division in a way which uses
@@ -68,9 +63,6 @@ That makes our type-level natural numbers useless! That's why `type_operators` p
 type-level representations, the `concrete` declaration:
 
 ```rust
-# #[macro_use]
-# extern crate type_operators;
-
 type_operators! {
     [A, B, C, D, E]
 
@@ -81,7 +73,6 @@ type_operators! {
         Undefined => panic!("Undefined type-level arithmetic result!"),
     }
 }
-# fn main() {}
 ```
 
 This adds an associated function to the `Nat` trait called `reify`, which allows you to turn your type-level
@@ -118,7 +109,7 @@ So our little table of operations now looks like:
 Now you're probably saying, "whoa! That doesn't look like Rust at all! Back up!" And that's because it *isn't.* I made
 a little LISP-like dialect to describe Rust types for this project because it makes things a lot easier to parse in
 macros; specifically, each little atomic type can be wrapped up in a pair of parentheses, while with angle brackets,
-Rust has to parse them as separate tokens. Anyways just trust me it makes it easier. In this setup, (O N) means `O<N>`,
+Rust has to parse them as separate tokens. In this setup, `(O N)` means `O<N>`,
 just `P` alone means `P`, etc. etc. The notation `[X, Y] => Z` means "given inputs `X` and `Y`, produce output `Z`." So
 it's a sort of pattern-matching.
 
@@ -159,8 +150,6 @@ So then. Let's load this into an invocation of `type_operators` to see how it lo
 but with a couple additions (I'm leaving out `Undefined` for now because it's not yet relevant):
 
 ```rust
-# #[macro_use] extern crate type_operators;
-
 type_operators! {
     [A, B, C, D, E]
 
@@ -186,7 +175,6 @@ type_operators! {
         }
     }
 }
-# fn main() {}
 ```
 
 There are several things to note. First, the definition `(Sum) Adding(Nat, Nat): Nat`. This says,
@@ -194,7 +182,6 @@ There are several things to note. First, the definition `(Sum) Adding(Nat, Nat):
 as a recursive trait under the hood, this means we get a trait definition of the form:
 
 ```rust
-# pub trait Nat {}
 pub trait Adding<A: Nat>: Nat {
     type Output: Nat;
 }
