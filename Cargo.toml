@@ -1,6 +1,6 @@
 [package]
 name = "type-operators"
-version = "0.1.1"
+version = "0.1.2"
 authors = ["Sean Leffler <sean@errno.com>"]
 
 description = "A macro system for creating type operators in Rust and writing type-level logic."
@@ -18,3 +18,5 @@ license = "MIT/Apache-2.0"
 [features]
 default = []
 specialization = []
+
+nightly = ["specialization"]
