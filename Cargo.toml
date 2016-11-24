@@ -15,4 +15,6 @@ keywords = ["type", "type-level", "operator", "macro"]
 
 license = "MIT/Apache-2.0"
 
-[dependencies]
+[features]
+default = []
+specialization = []

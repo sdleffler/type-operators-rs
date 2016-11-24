@@ -404,19 +404,33 @@
 /// ```
 #[macro_export]
 macro_rules! type_operators {
+    ($gensym:tt $(#[$attr:meta])* data $name:ident: $fbound:ident $(+ $bound:ident)* { $($stuff:tt)* } $($rest:tt)*) => {
+        pub trait $name: $fbound $(+ $bound)* {}
+
+        _tlsm_data!([$name ($fbound $(+ $bound)*) $($attr)*] $gensym $($stuff)*);
+        type_operators!($gensym $($rest)*);
+    };
     ($gensym:tt $(#[$attr:meta])* data $name:ident { $($stuff:tt)* } $($rest:tt)*) => {
         pub trait $name {}
 
-        _tlsm_data!([$name $($attr)*] $gensym $($stuff)*);
+        _tlsm_data!([$name () $($attr)*] $gensym $($stuff)*);
         type_operators!($gensym $($rest)*);
     };
 
+    ($gensym:tt $(#[$attr:meta])* concrete $name:ident: $fbound:ident $(+ $bound:ident)* => $output:ty { $($stuff:tt)* } $($rest:tt)*) => {
+        pub trait $name: $fbound $(+ $bound)* {
+            fn reify() -> $output;
+        }
+
+        _tlsm_concrete!([$name ($fbound $(+ $bound)*) $($attr)*] $output; $gensym $($stuff)*);
+        type_operators!($gensym $($rest)*);
+    };
     ($gensym:tt $(#[$attr:meta])* concrete $name:ident => $output:ty { $($stuff:tt)* } $($rest:tt)*) => {
         pub trait $name {
             fn reify() -> $output;
         }
 
-        _tlsm_concrete!([$name $($attr)*] $output; $gensym $($stuff)*);
+        _tlsm_concrete!([$name () $($attr)*] $output; $gensym $($stuff)*);
         type_operators!($gensym $($rest)*);
     };
 
@@ -475,54 +489,60 @@ macro_rules! _tlsm_states {
     (@bounds $machine:ident { $($implinfo:tt)* } $bounds:tt [] $constant:ident) => {
         _tlsm_states!(@implement $machine $bounds $($implinfo)*);
     };
+    (@maybedefault $machine:ident $quantified:tt [$($input:tt)*] => $output:tt) => {
+        _tlsm_states!(@bounds $machine { [] $quantified [$($input)*] => $output } [] [] $output);
+    };
+    (@maybedefault $machine:ident $quantified:tt {$($input:tt)*} => $output:tt) => {
+        _tlsm_states!(@bounds $machine { [default] $quantified [$($input)*] => $output } [] [] $output);
+    };
     (@dispatch $machine:ident forall $quantified:tt { $($input:tt => $output:tt)* }) => {
-        $(_tlsm_states!(@bounds $machine { $quantified $input => $output } [] [] $output);)*
+        $(_tlsm_states!(@maybedefault $machine $quantified $input => $output);)*
     };
     (@dispatch $machine:ident $input:tt => $output:tt) => {
-        _tlsm_states!(@bounds $machine { () $input => $output } [] [] $output);
+        _tlsm_states!(@maybedefault $machine () $input => $output);
     };
-    (@implement $machine:ident [$(($($constraint:tt)*))+] ($($bounds:tt)+) [$head:tt $(, $input:tt)+] => $output:tt) => {
+    (@implement $machine:ident [$(($($constraint:tt)*))+] [$($default:tt)*] ($($bounds:tt)+) [$head:tt $(, $input:tt)+] => $output:tt) => {
         impl<$($bounds)+> $machine< $(_tlsm_parse_type!($input)),+ > for _tlsm_parse_type!($head) where $($($constraint)*),+
         {
-            type Output = _tlsm_states!(@output $machine $output);
+            $($default)* type Output = _tlsm_states!(@output $machine $output);
         }
     };
-    (@implement $machine:ident [$(($($constraint:tt)*))+] ($($bounds:tt)+) [$head:tt] => $output:tt) => {
+    (@implement $machine:ident [$(($($constraint:tt)*))+] [$($default:tt)*] ($($bounds:tt)+) [$head:tt] => $output:tt) => {
         impl<$($bounds)+> $machine for _tlsm_parse_type!($head) where $($($constraint)*),+
         {
-            type Output = _tlsm_states!(@output $machine $output);
+            $($default)* type Output = _tlsm_states!(@output $machine $output);
         }
     };
-    (@implement $machine:ident [$(($($constraint:tt)*))+] () [$head:tt $(, $input:tt)+] => $output:tt) => {
+    (@implement $machine:ident [$(($($constraint:tt)*))+] [$($default:tt)*] () [$head:tt $(, $input:tt)+] => $output:tt) => {
         impl $machine< $(_tlsm_parse_type!($input)),+ > for _tlsm_parse_type!($head) where $($($constraint)*),+
         {
-            type Output = _tlsm_states!(@output $machine $output);
+            $($default)* type Output = _tlsm_states!(@output $machine $output);
         }
     };
-    (@implement $machine:ident [$(($($constraint:tt)*))+] () [$head:tt] => $output:tt) => {
+    (@implement $machine:ident [$(($($constraint:tt)*))+] [$($default:tt)*] () [$head:tt] => $output:tt) => {
         impl $machine for _tlsm_parse_type!($head) where $($($constraint)*),+
         {
-            type Output = _tlsm_states!(@output $machine $output);
+            $($default)* type Output = _tlsm_states!(@output $machine $output);
         }
     };
-    (@implement $machine:ident [] ($($bounds:tt)+) [$head:tt $(, $input:tt)+] => $output:tt) => {
+    (@implement $machine:ident [] [$($default:tt)*] ($($bounds:tt)+) [$head:tt $(, $input:tt)+] => $output:tt) => {
         impl<$($bounds)+> $machine< $(_tlsm_parse_type!($input)),+ > for _tlsm_parse_type!($head) {
-            type Output = _tlsm_states!(@output $machine $output);
+            $($default)* type Output = _tlsm_states!(@output $machine $output);
         }
     };
-    (@implement $machine:ident [] ($($bounds:tt)+) [$head:tt] => $output:tt) => {
+    (@implement $machine:ident [] [$($default:tt)*] ($($bounds:tt)+) [$head:tt] => $output:tt) => {
         impl<$($bounds)+> $machine for _tlsm_parse_type!($head) {
-            type Output = _tlsm_states!(@output $machine $output);
+            $($default)* type Output = _tlsm_states!(@output $machine $output);
         }
     };
-    (@implement $machine:ident [] () [$head:tt $(, $input:tt)+] => $output:tt) => {
+    (@implement $machine:ident [] [$($default:tt)*] () [$head:tt $(, $input:tt)+] => $output:tt) => {
         impl $machine< $(_tlsm_parse_type!($input)),+ > for _tlsm_parse_type!($head) {
-            type Output = _tlsm_states!(@output $machine $output);
+            $($default)* type Output = _tlsm_states!(@output $machine $output);
         }
     };
-    (@implement $machine:ident [] () [$head:tt] => $output:tt) => {
+    (@implement $machine:ident [] [$($default:tt)*] () [$head:tt] => $output:tt) => {
         impl $machine for _tlsm_parse_type!($head) {
-            type Output = _tlsm_states!(@output $machine $output);
+            $($default)* type Output = _tlsm_states!(@output $machine $output);
         }
     };
     (@output $machine:ident (& $arg:tt $($extra:tt)*)) => {
@@ -603,18 +623,28 @@ macro_rules! _tlsm_data {
     ($attrs:tt @parameterized $name:ident [$gensym:ident $(, $next:ident)*] [$($args:tt)*] [$($bounds:tt)*] [$($phantom:tt)*] $kind:ident $($rest:tt)*) => {
         _tlsm_data!($attrs @parameterized $name [$($next),*] [$($args)* ($gensym: $kind)] [$($bounds)* ($gensym: $kind)] [$($phantom)* ($gensym)] $($rest)*);
     };
-    ([$group:ident $($attr:meta)*] @parameterized $name:ident $gensyms:tt [$(($($args:tt)*))*] [$(($($bounds:tt)*))*] [$(($($phantom:tt)*))*]) => {
+    ([$group:ident $derives:tt $($attr:meta)*] @parameterized $name:ident $gensyms:tt [$(($($args:tt)*))*] [$(($($bounds:tt)*))*] [$(($($phantom:tt)*))*]) => {
         $(#[$attr])*
         pub struct $name < $($($args)*),* >(::std::marker::PhantomData<($($($phantom)*),*)>);
 
         impl< $($($bounds)*),* > $group for $name<$($($phantom)*),*> {}
     };
-    ([$group:ident $($attr:meta)*] $gensym:tt $name:ident, $($rest:tt)*) => {
+    ([$group:ident () $($attr:meta)*] $gensym:tt DEFAULT, $($rest:tt)*) => {
+        impl<T> $group for T {}
+
+        _tlsm_data!([$group () $($attr)*] $gensym $($rest)*);
+    };
+    ([$group:ident ($fbound:ident $(+ $bound:ident)*) $($attr:meta)*] $gensym:tt DEFAULT, $($rest:tt)*) => {
+        impl<T> $group for T where T: $fbound $(+ $bound)* {}
+
+        _tlsm_data!([$group ($fbound $(+ $bound)*) $($attr)*] $gensym $($rest)*);
+    };
+    ([$group:ident $derives:tt $($attr:meta)*] $gensym:tt $name:ident, $($rest:tt)*) => {
         $(#[$attr])*
         pub struct $name;
 
         impl $group for $name {}
-        _tlsm_data!([$group $($attr)*] $gensym $($rest)*);
+        _tlsm_data!([$group $derives $($attr)*] $gensym $($rest)*);
     };
     ($attrs:tt $gensym:tt $name:ident($($args:tt)*), $($rest:tt)*) => {
         _tlsm_data!($attrs @parameterized $name $gensym [] [] [] $($args)*);
@@ -637,7 +667,7 @@ macro_rules! _tlsm_concrete {
     ($attrs:tt $output:ty; @parameterized $name:ident => $value:expr; [$gensym:ident $(, $next:ident)*] [$($args:tt)*] [$($bounds:tt)*] $syms:tt $kind:ident $(, $($rest:tt)*)*) => {
         _tlsm_concrete!($attrs $output; @parameterized $name => $value; [$($next),*] [$($args)* ($gensym: $kind)] [$($bounds)* ($gensym: $kind)] $syms $($($rest)*),*);
     };
-    ([$group:ident $($attr:meta)*] $output:ty; @parameterized $name:ident => $value:expr; $gensyms:tt [$(($tysym:ident: $($args:tt)*))*] [$(($bsym:ident: $bound:ident))*] [$($sym:ident)*]) => {
+    ([$group:ident $derives:tt $($attr:meta)*] $output:ty; @parameterized $name:ident => $value:expr; $gensyms:tt [$(($tysym:ident: $($args:tt)*))*] [$(($bsym:ident: $bound:ident))*] [$($sym:ident)*]) => {
         $(#[$attr])*
         pub struct $name < $($tysym: $($args)*),* >(::std::marker::PhantomData<($($tysym),*)>);
 
@@ -646,7 +676,21 @@ macro_rules! _tlsm_concrete {
             fn reify() -> $output { $(let $sym = <$sym>::reify();)* $value }
         }
     };
-    ([$group:ident $($attr:meta)*] $output:ty; $gensym:tt $name:ident => $value:expr, $($rest:tt)*) => {
+    ([$group:ident () $($attr:meta)*] $output:ty; $gensym:tt DEFAULT => $value:expr, $($rest:tt)*) => {
+        impl<T> $group for T {
+            default fn reify() -> $output { $value }
+        }
+
+        _tlsm_concrete!([$group () $($attr)*] $output; $gensym $($rest)*);
+    };
+    ([$group:ident ($fbound:ident $(+ $bound:ident)*) $($attr:meta)*] $output:ty; $gensym:tt DEFAULT => $value:expr, $($rest:tt)*) => {
+        impl<T> $group for T where T: $fbound $(+ $bound)* {
+            default fn reify() -> $output { $value }
+        }
+
+        _tlsm_concrete!([$group ($fbound $(+ $bound)*) $($attr)*] $output; $gensym $($rest)*);
+    };
+    ([$group:ident $derives:tt $($attr:meta)*] $output:ty; $gensym:tt $name:ident => $value:expr, $($rest:tt)*) => {
         $(#[$attr])*
         pub struct $name;
 
@@ -654,7 +698,7 @@ macro_rules! _tlsm_concrete {
             fn reify() -> $output { $value }
         }
 
-        _tlsm_concrete!([$group $($attr)*] $output; $gensym $($rest)*);
+        _tlsm_concrete!([$group $derives $($attr)*] $output; $gensym $($rest)*);
     };
     ($attrs:tt $output:ty; $gensym:tt $name:ident($($args:tt)*) => $value:expr, $($rest:tt)*) => {
         _tlsm_concrete!($attrs $output; @parameterized $name => $value; $gensym [] [] [] $($args)*);
@@ -669,15 +713,8 @@ mod tests_1 {
     use super::*;
 
     type_operators! {
-        [A, B, C, D, E] // The gensym list. Be careful not to have these collide with your struct names!
-        // If I used `data` instead of concrete, no automatic `reify` function would be provided.
-        // But since I did, we have a sort of inductive thing going on here, by which we can transform
-        // any instance of this type into the reified version.
-        // data Nat {
-        //     P,
-        //     I(Nat = P),
-        //     O(Nat = P),
-        // }
+        [A, B, C, D, E]
+
         concrete Nat => usize {
             P => 0,
             I(N: Nat = P) => 1 + 2 * N,
