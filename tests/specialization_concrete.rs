@@ -1,4 +1,4 @@
-#![feature(specialization)]
+#![cfg_attr(feature = "specialization", feature(specialization))]
 
 #[macro_use]
 extern crate type_operators;
