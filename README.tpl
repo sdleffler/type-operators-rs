@@ -1,6 +1,6 @@
 [![Build Status](https://travis-ci.org/sdleffler/type-operators-rs.svg?branch=master)](https://travis-ci.org/sdleffler/type-operators-rs)
 [![Docs Status](https://docs.rs/type-operators/badge.svg)](https://docs.rs/type-operators)
-[![On crates.io](https://img.shields.io/crates/v/type-operators.svg)](https://crates.io/type-operators)
+[![On crates.io](https://img.shields.io/crates/v/type-operators.svg)](https://crates.io/crates/type-operators)
 
 {{readme}}
 
