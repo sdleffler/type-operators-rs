@@ -209,6 +209,53 @@ little LISP-y dialect, all of which can only be used on the right-hand side of a
   `impl`. It can appear anywhere in the right-hand side of a rule in the DSL, but in general should probably always be
   written at the top-level for consistency.
 
+In addition, it is possible to use attributes such as `#[derive(...)]` or `#[cfg(...)]` on `data` and `concrete` definitions
+as well as individual elements inside them. In addition, attributes can be added to the `impl`s for rules. For example:
+
+```rust
+type_operators! {
+    [A, B, C, D, E]
+
+    #[derive(Default, Debug)]
+    data Nat: Default + Debug {
+        P,
+        I(Nat = P),
+        O(Nat = P),
+        #[cfg(features = "specialization")]
+        Error,
+        #[cfg(features = "specialization")]
+        DEFAULT,
+    }
+
+    (Sum) Adding(Nat, Nat): Nat {
+        [P, P] => P
+        forall (N: Nat) {
+            [(O N), P] => (O N)
+            [(I N), P] => (I N)
+            [P, (O N)] => (O N)
+            [P, (I N)] => (I N)
+        }
+        forall (N: Nat, M: Nat) {
+            [(O M), (O N)] => (O (# M N))
+            [(I M), (O N)] => (I (# M N))
+            [(O M), (I N)] => (I (# M N))
+            [(I M), (I N)] => (O (# (# M N) I))
+
+            #[cfg(features = "specialization")] {
+                {M, N} => Error
+            }
+        }
+    }
+}
+```
+
+Note the block `#[cfg(features = "specialization")] { ... }`. This tells `type_operators!` to add the attribute
+`#[cfg(features = "specialization")]` to every `impl` declared inside.
+
+Current bugs/improvements to be made:
+- Bounds in type operators are currently restricted to identifiers only - they should be augmented with a LISP-like
+  dialect similar to the rest of the macro system.
+
 If questions are had, I may be found either at my email (which is listed on GitHub) or on the `#rust` IRC, where I go by
 the nick `sleffy`.
 
