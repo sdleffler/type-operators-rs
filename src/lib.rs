@@ -217,7 +217,54 @@
 //!   written at the top-level for consistency.
 //!
 //! In addition, it is possible to use attributes such as `#[derive(...)]` or `#[cfg(...)]` on `data` and `concrete` definitions
-//! as well as individual elements inside them.
+//! as well as individual elements inside them. In addition, attributes can be added to the `impl`s for rules. For example:
+//!
+//! ```rust
+//! # #[macro_use] extern crate type_operators;
+//! # use std::fmt::Debug;
+//! type_operators! {
+//!     [A, B, C, D, E]
+//!
+//!     #[derive(Default, Debug)]
+//!     data Nat: Default + Debug {
+//!         P,
+//!         I(Nat = P),
+//!         O(Nat = P),
+//!         #[cfg(features = "specialization")]
+//!         Error,
+//!         #[cfg(features = "specialization")]
+//!         DEFAULT,
+//!     }
+//!
+//!     (Sum) Adding(Nat, Nat): Nat {
+//!         [P, P] => P
+//!         forall (N: Nat) {
+//!             [(O N), P] => (O N)
+//!             [(I N), P] => (I N)
+//!             [P, (O N)] => (O N)
+//!             [P, (I N)] => (I N)
+//!         }
+//!         forall (N: Nat, M: Nat) {
+//!             [(O M), (O N)] => (O (# M N))
+//!             [(I M), (O N)] => (I (# M N))
+//!             [(O M), (I N)] => (I (# M N))
+//!             [(I M), (I N)] => (O (# (# M N) I))
+//!
+//!             #[cfg(features = "specialization")] {
+//!                 {M, N} => Error
+//!             }
+//!         }
+//!     }
+//! }
+//! # fn main() {}
+//! ```
+//!
+//! Note the block `#[cfg(features = "specialization")] { ... }`. This tells `type_operators!` to add the attribute
+//! `#[cfg(features = "specialization")]` to every `impl` declared inside.
+//!
+//! Current bugs/improvements to be made:
+//! - Bounds in type operators are currently restricted to identifiers only - they should be augmented with a LISP-like
+//!   dialect similar to the rest of the macro system.
 //!
 //! If questions are had, I may be found either at my email (which is listed on GitHub) or on the `#rust` IRC, where I go by
 //! the nick `sleffy`.
@@ -437,9 +484,9 @@ macro_rules! type_operators {
         type_operators!($gensym $($rest)*);
     };
 
-    ($gensym:tt ($alias:ident) $machine:ident ($($kind:tt),*): $out:tt { $($states:tt)* } $($rest:tt)*) => {
-        _tlsm_machine!($alias $machine $gensym [$($kind),*] [] $out);
-        _tlsm_states!($machine $($states)*);
+    ($gensym:tt $(#$attr:tt)* ($alias:ident) $machine:ident ($($kind:tt),*): $out:tt { $($states:tt)* } $($rest:tt)*) => {
+        _tlsm_machine!([$($attr)*] $alias $machine $gensym [$($kind),*] [] $out);
+        _tlsm_states!($machine [$($attr)*] $($states)*);
 
         type_operators!($gensym $($rest)*);
     };
@@ -459,91 +506,105 @@ macro_rules! _tlsm_parse_type {
 
 #[macro_export]
 macro_rules! _tlsm_states {
-    (@bounds $machine:ident $implinfo:tt [$($bounds:tt)*] [$($queue:tt)*] (& $arg:tt where $($extra:tt)*)) => {
-        _tlsm_states!(@bounds $machine $implinfo [$($bounds)* $($extra)*] [$($queue)*] $arg);
+    (@bounds $attrs:tt $machine:ident $implinfo:tt [$($bounds:tt)*] [$($queue:tt)*] (& $arg:tt where $($extra:tt)*)) => {
+        _tlsm_states!(@bounds $attrs $machine $implinfo [$($bounds)* $($extra)*] [$($queue)*] $arg);
     };
-    (@bounds $machine:ident $implinfo:tt $bounds:tt [$($queue:tt)*] (% $arg:tt $($more:tt)*)) => {
-        _tlsm_states!(@bounds $machine $implinfo $bounds [$($more)* $($queue)*] $arg);
+    (@bounds $attrs:tt $machine:ident $implinfo:tt $bounds:tt [$($queue:tt)*] (% $arg:tt $($more:tt)*)) => {
+        _tlsm_states!(@bounds $attrs $machine $implinfo $bounds [$($more)* $($queue)*] $arg);
     };
-    (@bounds $machine:ident $implinfo:tt [$($bounds:tt)*] [$($queue:tt)*] (# $arg:tt $($more:tt)+)) => {
-        _tlsm_states!(@bounds $machine $implinfo
+    (@bounds $attrs:tt $machine:ident $implinfo:tt [$($bounds:tt)*] [$($queue:tt)*] (# $arg:tt $($more:tt)+)) => {
+        _tlsm_states!(@bounds $attrs $machine $implinfo
                 [$($bounds)* (_tlsm_states!(@output $machine $arg):
                     $machine< $(_tlsm_states!(@output $machine $more)),+ >)] [$($more)* $($queue)*] $arg);
     };
-    (@bounds $machine:ident $implinfo:tt [$($bounds:tt)*] [$($queue:tt)*] (@ $external:ident $arg:tt $($more:tt)+)) => {
-        _tlsm_states!(@bounds $machine $implinfo
+    (@bounds $attrs:tt $machine:ident $implinfo:tt [$($bounds:tt)*] [$($queue:tt)*] (@ $external:ident $arg:tt $($more:tt)+)) => {
+        _tlsm_states!(@bounds $attrs $machine $implinfo
                 [$($bounds)* (_tlsm_states!(@output $machine $arg):
                     $external< $(_tlsm_states!(@output $machine $more)),+ >)] [$($more)* $($queue)*] $arg);
     };
-    (@bounds $machine:ident $implinfo:tt [$($bounds:tt)*] [$($queue:tt)*] (# $arg:tt)) => {
-        _tlsm_states!(@bounds $machine $implinfo
+    (@bounds $attrs:tt $machine:ident $implinfo:tt [$($bounds:tt)*] [$($queue:tt)*] (# $arg:tt)) => {
+        _tlsm_states!(@bounds $attrs $machine $implinfo
                 [$($bounds)* (_tlsm_states!(@output $machine $arg): $machine)] [$($queue)*] $arg);
     };
-    (@bounds $machine:ident $implinfo:tt [$($bounds:tt)*] [$($queue:tt)*] (@ $external:ident $arg:tt)) => {
-        _tlsm_states!(@bounds $machine $implinfo
+    (@bounds $attrs:tt $machine:ident $implinfo:tt [$($bounds:tt)*] [$($queue:tt)*] (@ $external:ident $arg:tt)) => {
+        _tlsm_states!(@bounds $attrs $machine $implinfo
                 [$($bounds)* (_tlsm_states!(@output $machine $arg): $external)] [$($queue)*] $arg);
     };
-    (@bounds $machine:ident $implinfo:tt $bounds:tt [$($queue:tt)*] ($parameterized:ident $arg:tt $($args:tt)*)) => {
-        _tlsm_states!(@bounds $machine $implinfo $bounds [$($args)* $($queue)*] $arg);
+    (@bounds $attrs:tt $machine:ident $implinfo:tt $bounds:tt [$($queue:tt)*] ($parameterized:ident $arg:tt $($args:tt)*)) => {
+        _tlsm_states!(@bounds $attrs $machine $implinfo $bounds [$($args)* $($queue)*] $arg);
     };
-    (@bounds $machine:ident $implinfo:tt $bounds:tt [$next:tt $($queue:tt)*] $constant:ident) => {
-        _tlsm_states!(@bounds $machine $implinfo $bounds [$($queue)*] $next);
+    (@bounds $attrs:tt $machine:ident $implinfo:tt $bounds:tt [$next:tt $($queue:tt)*] $constant:ident) => {
+        _tlsm_states!(@bounds $attrs $machine $implinfo $bounds [$($queue)*] $next);
     };
-    (@bounds $machine:ident { $($implinfo:tt)* } $bounds:tt [] $constant:ident) => {
-        _tlsm_states!(@implement $machine $bounds $($implinfo)*);
+    (@bounds $attrs:tt $machine:ident { $($implinfo:tt)* } $bounds:tt [] $constant:ident) => {
+        _tlsm_states!(@implement $attrs $machine $bounds $($implinfo)*);
     };
-    (@maybedefault $machine:ident $quantified:tt [$($input:tt)*] => $output:tt) => {
-        _tlsm_states!(@bounds $machine { [] $quantified [$($input)*] => $output } [] [] $output);
+    (@maybedefault $attrs:tt $machine:ident $quantified:tt [$($input:tt)*] => $output:tt) => {
+        _tlsm_states!(@bounds $attrs $machine { [] $quantified [$($input)*] => $output } [] [] $output);
     };
-    (@maybedefault $machine:ident $quantified:tt {$($input:tt)*} => $output:tt) => {
-        _tlsm_states!(@bounds $machine { [default] $quantified [$($input)*] => $output } [] [] $output);
+    (@maybedefault $attrs:tt $machine:ident $quantified:tt {$($input:tt)*} => $output:tt) => {
+        _tlsm_states!(@bounds $attrs $machine { [default] $quantified [$($input)*] => $output } [] [] $output);
     };
-    (@dispatch $machine:ident forall $quantified:tt { $($input:tt => $output:tt)* }) => {
-        $(_tlsm_states!(@maybedefault $machine $quantified $input => $output);)*
+    (@dispatchgroup $attrs:tt $machine:ident $quantified:tt $($head:tt $body:tt $tail:tt)*) => {
+        $(_tlsm_states!(@dispatch $attrs $machine $quantified $head $body $tail);)*
     };
-    (@dispatch $machine:ident $input:tt => $output:tt) => {
-        _tlsm_states!(@maybedefault $machine () $input => $output);
+    (@dispatch [$($attr:meta)*] $machine:ident $quantified:tt # [$newattr:meta] { $($head:tt $body:tt $tail:tt)* }) => {
+        _tlsm_states!(@dispatchgroup [$($attr)* $newattr] $machine $quantified $($head $body $tail)*);
     };
-    (@implement $machine:ident [$(($($constraint:tt)*))+] [$($default:tt)*] ($($bounds:tt)+) [$head:tt $(, $input:tt)+] => $output:tt) => {
-        impl<$($bounds)+> $machine< $(_tlsm_parse_type!($input)),+ > for _tlsm_parse_type!($head) where $($($constraint)*),+
+    (@dispatch $attrs:tt $machine:ident ($(($lsym:ident: $lbound:ident))*) forall ($($rsym:ident: $rbound:ident),*) { $($head:tt $body:tt $tail:tt)* }) => {
+        _tlsm_states!(@dispatchgroup $attrs $machine ($(($lsym: $lbound))* $(($rsym: $rbound))*) $($head $body $tail)*);
+    };
+    (@dispatch $attrs:tt $machine:ident $quantified:tt $input:tt => $output:tt) => {
+        _tlsm_states!(@maybedefault $attrs $machine $quantified $input => $output);
+    };
+    (@implement [$($attr:meta)*] $machine:ident [$(($($constraint:tt)*))+] [$($default:tt)*] ($(($sym:ident: $bound:ident))+) [$head:tt $(, $input:tt)+] => $output:tt) => {
+        $(#[$attr])*
+        impl<$($sym: $bound),+> $machine< $(_tlsm_parse_type!($input)),+ > for _tlsm_parse_type!($head) where $($($constraint)*),+
         {
             $($default)* type Output = _tlsm_states!(@output $machine $output);
         }
     };
-    (@implement $machine:ident [$(($($constraint:tt)*))+] [$($default:tt)*] ($($bounds:tt)+) [$head:tt] => $output:tt) => {
-        impl<$($bounds)+> $machine for _tlsm_parse_type!($head) where $($($constraint)*),+
+    (@implement [$($attr:meta)*] $machine:ident [$(($($constraint:tt)*))+] [$($default:tt)*] ($(($sym:ident: $bound:ident))+) [$head:tt] => $output:tt) => {
+        $(#[$attr])*
+        impl<$($sym: $bound),+> $machine for _tlsm_parse_type!($head) where $($($constraint)*),+
         {
             $($default)* type Output = _tlsm_states!(@output $machine $output);
         }
     };
-    (@implement $machine:ident [$(($($constraint:tt)*))+] [$($default:tt)*] () [$head:tt $(, $input:tt)+] => $output:tt) => {
+    (@implement [$($attr:meta)*] $machine:ident [$(($($constraint:tt)*))+] [$($default:tt)*] () [$head:tt $(, $input:tt)+] => $output:tt) => {
+        $(#[$attr])*
         impl $machine< $(_tlsm_parse_type!($input)),+ > for _tlsm_parse_type!($head) where $($($constraint)*),+
         {
             $($default)* type Output = _tlsm_states!(@output $machine $output);
         }
     };
-    (@implement $machine:ident [$(($($constraint:tt)*))+] [$($default:tt)*] () [$head:tt] => $output:tt) => {
+    (@implement [$($attr:meta)*] $machine:ident [$(($($constraint:tt)*))+] [$($default:tt)*] () [$head:tt] => $output:tt) => {
+        $(#[$attr])*
         impl $machine for _tlsm_parse_type!($head) where $($($constraint)*),+
         {
             $($default)* type Output = _tlsm_states!(@output $machine $output);
         }
     };
-    (@implement $machine:ident [] [$($default:tt)*] ($($bounds:tt)+) [$head:tt $(, $input:tt)+] => $output:tt) => {
-        impl<$($bounds)+> $machine< $(_tlsm_parse_type!($input)),+ > for _tlsm_parse_type!($head) {
+    (@implement [$($attr:meta)*] $machine:ident [] [$($default:tt)*] ($(($sym:ident: $bound:ident))+) [$head:tt $(, $input:tt)+] => $output:tt) => {
+        $(#[$attr])*
+        impl<$($sym: $bound),+> $machine< $(_tlsm_parse_type!($input)),+ > for _tlsm_parse_type!($head) {
             $($default)* type Output = _tlsm_states!(@output $machine $output);
         }
     };
-    (@implement $machine:ident [] [$($default:tt)*] ($($bounds:tt)+) [$head:tt] => $output:tt) => {
-        impl<$($bounds)+> $machine for _tlsm_parse_type!($head) {
+    (@implement [$($attr:meta)*] $machine:ident [] [$($default:tt)*] ($(($sym:ident: $bound:ident))+) [$head:tt] => $output:tt) => {
+        $(#[$attr])*
+        impl<$($sym: $bound),+> $machine for _tlsm_parse_type!($head) {
             $($default)* type Output = _tlsm_states!(@output $machine $output);
         }
     };
-    (@implement $machine:ident [] [$($default:tt)*] () [$head:tt $(, $input:tt)+] => $output:tt) => {
+    (@implement [$($attr:meta)*] $machine:ident [] [$($default:tt)*] () [$head:tt $(, $input:tt)+] => $output:tt) => {
+        $(#[$attr])*
         impl $machine< $(_tlsm_parse_type!($input)),+ > for _tlsm_parse_type!($head) {
             $($default)* type Output = _tlsm_states!(@output $machine $output);
         }
     };
-    (@implement $machine:ident [] [$($default:tt)*] () [$head:tt] => $output:tt) => {
+    (@implement [$($attr:meta)*] $machine:ident [] [$($default:tt)*] () [$head:tt] => $output:tt) => {
+        $(#[$attr])*
         impl $machine for _tlsm_parse_type!($head) {
             $($default)* type Output = _tlsm_states!(@output $machine $output);
         }
@@ -575,45 +636,56 @@ macro_rules! _tlsm_states {
     (@output $machine:ident $constant:ident) => {
         $constant
     };
-    ($machine:ident $($head:tt $body:tt $tail:tt)*) => {
-        $(_tlsm_states!(@dispatch $machine $head $body $tail);)*
+    (@reduceattrs [$($attr:tt)*] [$($specific:tt)*] $machine:ident $head:tt $body:tt $tail:tt) => {
+        _tlsm_states!(@dispatch [$($attr)* $($specific)*] $machine () $head $body $tail);
+    };
+    ($machine:ident $attrs:tt $($(# $specific:tt)* $head:tt $body:tt $tail:tt)*) => {
+        $(_tlsm_states!(@reduceattrs $attrs [$($specific)*] $machine $head $body $tail);)*
     };
 }
 
 #[macro_export]
 macro_rules! _tlsm_machine {
-    ($alias:ident $machine:ident [$gensym:ident $(, $gensyms:ident)*] [_ $(, $kinds:tt)*] [$($accum:tt)*] $out:tt) => {
-        _tlsm_machine!($alias $machine [$($gensyms),*] [$($kinds),*] [$($accum)* ($gensym)] $out);
+    ($attrs:tt $alias:ident $machine:ident [$gensym:ident $(, $gensyms:ident)*] [_ $(, $kinds:tt)*] [$($accum:tt)*] $out:tt) => {
+        _tlsm_machine!($attrs $alias $machine [$($gensyms),*] [$($kinds),*] [$($accum)* ($gensym)] $out);
     };
-    ($alias:ident $machine:ident [$gensym:ident $(, $gensyms:ident)*] [$kind:tt $(, $kinds:tt)*] [$($accum:tt)*] $out:tt) => {
-        _tlsm_machine!($alias $machine [$($gensyms),*] [$($kinds),*] [$($accum)* ($gensym: $kind)] $out);
+    ($attrs:tt $alias:ident $machine:ident [$gensym:ident $(, $gensyms:ident)*] [$kind:tt $(, $kinds:tt)*] [$($accum:tt)*] $out:tt) => {
+        _tlsm_machine!($attrs $alias $machine [$($gensyms),*] [$($kinds),*] [$($accum)* ($gensym: $kind)] $out);
     };
-    ($alias:ident $machine:ident $gensym:tt [] [($fsym:ident $($fbound:tt)*) $(($sym:ident $($bound:tt)*))+] _) => {
+    ([$($attr:tt)*] $alias:ident $machine:ident $gensym:tt [] [($fsym:ident $($fbound:tt)*) $(($sym:ident $($bound:tt)*))+] _) => {
+        $(#$attr)*
         pub trait $machine < $($sym $($bound)*),+ > $($fbound)* {
             type Output;
         }
 
+        $(#$attr)*
         pub type $alias < $fsym $($fbound)* $(, $sym $($bound)*)+ > = <$fsym as $machine< $($sym),+ >>::Output;
     };
-    ($alias:ident $machine:ident $gensym:tt [] [($fsym:ident $($fbound:tt)*)] _) => {
+    ([$($attr:tt)*] $alias:ident $machine:ident $gensym:tt [] [($fsym:ident $($fbound:tt)*)] _) => {
+        $(#$attr)*
         pub trait $machine $($fbound)* {
             type Output;
         }
 
+        $(#$attr)*
         pub type $alias < $fsym $($fbound)* > = <$fsym as $machine>::Output;
     };
-    ($alias:ident $machine:ident $gensym:tt [] [($fsym:ident $($fbound:tt)*) $(($sym:ident $($bound:tt)*))+] $out:ident) => {
+    ([$($attr:tt)*] $alias:ident $machine:ident $gensym:tt [] [($fsym:ident $($fbound:tt)*) $(($sym:ident $($bound:tt)*))+] $out:ident) => {
+        $(#$attr)*
         pub trait $machine < $($sym $($bound)*),+ > $($fbound)* {
             type Output: $out;
         }
 
+        $(#$attr)*
         pub type $alias < $fsym $($fbound)* $(, $sym $($bound)*)+ > = <$fsym as $machine< $($sym),+ >>::Output;
     };
-    ($alias:ident $machine:ident $gensym:tt [] [($fsym:ident $($fbound:tt)*)] $out:ident) => {
+    ([$($attr:tt)*] $alias:ident $machine:ident $gensym:tt [] [($fsym:ident $($fbound:tt)*)] $out:ident) => {
+        $(#$attr)*
         pub trait $machine $($fbound)* {
             type Output: $out;
         }
 
+        $(#$attr)*
         pub type $alias < $fsym $($fbound)* > = <$fsym as $machine>::Output;
     };
 }
