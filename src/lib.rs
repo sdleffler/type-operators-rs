@@ -216,6 +216,9 @@
 //!   `impl`. It can appear anywhere in the right-hand side of a rule in the DSL, but in general should probably always be
 //!   written at the top-level for consistency.
 //!
+//! In addition, it is possible to use attributes such as `#[derive(...)]` or `#[cfg(...)]` on `data` and `concrete` definitions
+//! as well as individual elements inside them.
+//!
 //! If questions are had, I may be found either at my email (which is listed on GitHub) or on the `#rust` IRC, where I go by
 //! the nick `sleffy`.
 //!
@@ -404,33 +407,33 @@
 /// ```
 #[macro_export]
 macro_rules! type_operators {
-    ($gensym:tt $(#[$attr:meta])* data $name:ident: $fbound:ident $(+ $bound:ident)* { $($stuff:tt)* } $($rest:tt)*) => {
+    ($gensym:tt $(#$attr:tt)* data $name:ident: $fbound:ident $(+ $bound:ident)* { $($stuff:tt)* } $($rest:tt)*) => {
         pub trait $name: $fbound $(+ $bound)* {}
 
-        _tlsm_data!([$name ($fbound $(+ $bound)*) $($attr)*] $gensym $($stuff)*);
+        _tlsm_data!([$name ($fbound $(+ $bound)*) [] $($attr)*] $gensym $($stuff)*);
         type_operators!($gensym $($rest)*);
     };
-    ($gensym:tt $(#[$attr:meta])* data $name:ident { $($stuff:tt)* } $($rest:tt)*) => {
+    ($gensym:tt $(#$attr:tt)* data $name:ident { $($stuff:tt)* } $($rest:tt)*) => {
         pub trait $name {}
 
-        _tlsm_data!([$name () $($attr)*] $gensym $($stuff)*);
+        _tlsm_data!([$name () [] $($attr)*] $gensym $($stuff)*);
         type_operators!($gensym $($rest)*);
     };
 
-    ($gensym:tt $(#[$attr:meta])* concrete $name:ident: $fbound:ident $(+ $bound:ident)* => $output:ty { $($stuff:tt)* } $($rest:tt)*) => {
+    ($gensym:tt $(#$attr:tt)* concrete $name:ident: $fbound:ident $(+ $bound:ident)* => $output:ty { $($stuff:tt)* } $($rest:tt)*) => {
         pub trait $name: $fbound $(+ $bound)* {
             fn reify() -> $output;
         }
 
-        _tlsm_concrete!([$name ($fbound $(+ $bound)*) $($attr)*] $output; $gensym $($stuff)*);
+        _tlsm_concrete!([$name ($fbound $(+ $bound)*) [] $($attr)*] $output; $gensym $($stuff)*);
         type_operators!($gensym $($rest)*);
     };
-    ($gensym:tt $(#[$attr:meta])* concrete $name:ident => $output:ty { $($stuff:tt)* } $($rest:tt)*) => {
+    ($gensym:tt $(#$attr:tt)* concrete $name:ident => $output:ty { $($stuff:tt)* } $($rest:tt)*) => {
         pub trait $name {
             fn reify() -> $output;
         }
 
-        _tlsm_concrete!([$name () $($attr)*] $output; $gensym $($stuff)*);
+        _tlsm_concrete!([$name () [] $($attr)*] $output; $gensym $($stuff)*);
         type_operators!($gensym $($rest)*);
     };
 
@@ -616,6 +619,21 @@ macro_rules! _tlsm_machine {
 }
 
 #[macro_export]
+macro_rules! _tlsm_meta_filter_struct {
+    ([$($preceding:tt)*] #[struct: $attr:meta] $($more:tt)*) => (_tlsm_meta_filter_struct!([$($preceding)* #[$attr]] $($more)*););
+    ([$($preceding:tt)*] #$attr:tt $($more:tt)*) => (_tlsm_meta_filter_struct!([$($preceding)* #$attr] $($more)*););
+    ([$($preceding:tt)*] $($decl:tt)*) => ($($preceding)* $($decl)*);
+}
+
+#[macro_export]
+macro_rules! _tlsm_meta_filter_impl {
+    ([$($preceding:tt)*] #[impl: $attr:meta] $($more:tt)*) => (_tlsm_meta_filter_impl!([$($preceding)* #[$attr]] $($more)*););
+    ($preceding:tt #[derive $traits:tt] $($more:tt)*) => (_tlsm_meta_filter_impl!($preceding $($more)*);); // Friends don't let friends derive drunk!
+    ([$($preceding:tt)*] #$attr:tt $($more:tt)*) => (_tlsm_meta_filter_impl!([$($preceding)* #$attr] $($more)*););
+    ([$($preceding:tt)*] $($decl:tt)*) => ($($preceding)* $($decl)*);
+}
+
+#[macro_export]
 macro_rules! _tlsm_data {
     ($attrs:tt @parameterized $name:ident [$gensym:ident $(, $next:ident)*] [$($args:tt)*] [$($bounds:tt)*] [$($phantom:tt)*] $kind:ident = $default:ty $(, $($rest:tt)*)*) => {
         _tlsm_data!($attrs @parameterized $name [$($next),*] [$($args)* ($gensym: $kind = $default)] [$($bounds)* ($gensym: $kind)] [$($phantom)* ($gensym)] $($($rest)*),*);
@@ -623,32 +641,64 @@ macro_rules! _tlsm_data {
     ($attrs:tt @parameterized $name:ident [$gensym:ident $(, $next:ident)*] [$($args:tt)*] [$($bounds:tt)*] [$($phantom:tt)*] $kind:ident $($rest:tt)*) => {
         _tlsm_data!($attrs @parameterized $name [$($next),*] [$($args)* ($gensym: $kind)] [$($bounds)* ($gensym: $kind)] [$($phantom)* ($gensym)] $($rest)*);
     };
-    ([$group:ident $derives:tt $($attr:meta)*] @parameterized $name:ident $gensyms:tt [$(($($args:tt)*))*] [$(($($bounds:tt)*))*] [$(($($phantom:tt)*))*]) => {
-        $(#[$attr])*
-        pub struct $name < $($($args)*),* >(::std::marker::PhantomData<($($($phantom)*),*)>);
+    ([$group:ident $derives:tt [$($specific:tt)*] $($attr:tt)*] @parameterized $name:ident $gensyms:tt [$(($($args:tt)*))*] [$(($($bounds:tt)*))*] [$(($($phantom:tt)*))*]) => {
+        _tlsm_meta_filter_struct! { []
+            $(#$attr)*
+            $(#$specific)*
 
-        impl< $($($bounds)*),* > $group for $name<$($($phantom)*),*> {}
-    };
-    ([$group:ident () $($attr:meta)*] $gensym:tt DEFAULT, $($rest:tt)*) => {
-        impl<T> $group for T {}
+            pub struct $name < $($($args)*),* >(::std::marker::PhantomData<($($($phantom)*),*)>);
+        }
 
-        _tlsm_data!([$group () $($attr)*] $gensym $($rest)*);
-    };
-    ([$group:ident ($fbound:ident $(+ $bound:ident)*) $($attr:meta)*] $gensym:tt DEFAULT, $($rest:tt)*) => {
-        impl<T> $group for T where T: $fbound $(+ $bound)* {}
+        _tlsm_meta_filter_impl! { []
+            $(#$attr)*
+            $(#$specific)*
 
-        _tlsm_data!([$group ($fbound $(+ $bound)*) $($attr)*] $gensym $($rest)*);
+            impl< $($($bounds)*),* > $group for $name<$($($phantom)*),*> {}
+        }
     };
-    ([$group:ident $derives:tt $($attr:meta)*] $gensym:tt $name:ident, $($rest:tt)*) => {
-        $(#[$attr])*
-        pub struct $name;
+    ([$group:ident $derives:tt [$($specific:tt)*] $($attr:tt)*] $gensym:tt # $nextspecific:tt $($rest:tt)*) => {
+        _tlsm_data!([$group $derives [$($specific)* $nextspecific] $($attr)*] $gensym $($rest)*);
+    };
+    ([$group:ident () [$($specific:tt)*] $($attr:tt)*] $gensym:tt DEFAULT, $($rest:tt)*) => {
+        _tlsm_meta_filter_impl! { []
+            $(#$attr)*
+            $(#$specific)*
 
-        impl $group for $name {}
-        _tlsm_data!([$group $derives $($attr)*] $gensym $($rest)*);
+            impl<T> $group for T {}
+        }
+
+        _tlsm_data!([$group () [] $($attr)*] $gensym $($rest)*);
     };
-    ($attrs:tt $gensym:tt $name:ident($($args:tt)*), $($rest:tt)*) => {
-        _tlsm_data!($attrs @parameterized $name $gensym [] [] [] $($args)*);
-        _tlsm_data!($attrs $gensym $($rest)*);
+    ([$group:ident ($fbound:ident $(+ $bound:ident)*) [$($specific:tt)*] $($attr:tt)*] $gensym:tt DEFAULT, $($rest:tt)*) => {
+        _tlsm_meta_filter_impl! { []
+            $(#$attr)*
+            $(#$specific)*
+
+            impl<T> $group for T where T: $fbound $(+ $bound)* {}
+        }
+
+        _tlsm_data!([$group ($fbound $(+ $bound)*) [] $($attr)*] $gensym $($rest)*);
+    };
+    ([$group:ident $derives:tt [$($specific:tt)*] $($attr:tt)*] $gensym:tt $name:ident, $($rest:tt)*) => {
+        _tlsm_meta_filter_struct! { []
+            $(#$attr)*
+            $(#$specific)*
+
+            pub struct $name;
+        }
+
+        _tlsm_meta_filter_impl! { []
+            $(#$attr)*
+            $(#$specific)*
+
+            impl $group for $name {}
+        }
+
+        _tlsm_data!([$group $derives [] $($attr)*] $gensym $($rest)*);
+    };
+    ([$group:ident $derives:tt [$($specific:tt)*] $($attr:tt)*] $gensym:tt $name:ident($($args:tt)*), $($rest:tt)*) => {
+        _tlsm_data!([$group $derives [$($specific)*] $($attr)*] @parameterized $name $gensym [] [] [] $($args)*);
+        _tlsm_data!([$group $derives [] $($attr)*] $gensym $($rest)*);
     };
     ($attrs:tt $gensym:tt) => {};
 }
@@ -667,42 +717,67 @@ macro_rules! _tlsm_concrete {
     ($attrs:tt $output:ty; @parameterized $name:ident => $value:expr; [$gensym:ident $(, $next:ident)*] [$($args:tt)*] [$($bounds:tt)*] $syms:tt $kind:ident $(, $($rest:tt)*)*) => {
         _tlsm_concrete!($attrs $output; @parameterized $name => $value; [$($next),*] [$($args)* ($gensym: $kind)] [$($bounds)* ($gensym: $kind)] $syms $($($rest)*),*);
     };
-    ([$group:ident $derives:tt $($attr:meta)*] $output:ty; @parameterized $name:ident => $value:expr; $gensyms:tt [$(($tysym:ident: $($args:tt)*))*] [$(($bsym:ident: $bound:ident))*] [$($sym:ident)*]) => {
-        $(#[$attr])*
-        pub struct $name < $($tysym: $($args)*),* >(::std::marker::PhantomData<($($tysym),*)>);
-
-        impl< $($bsym: $bound),* > $group for $name<$($bsym),*> {
-            #[allow(non_snake_case)]
-            fn reify() -> $output { $(let $sym = <$sym>::reify();)* $value }
-        }
+    ([$group:ident $derives:tt [$($specific:tt)*] $($attr:tt)*] $output:ty; $gensym:tt # $nextspecific:tt $($rest:tt)*) => {
+        _tlsm_concrete!([$group $derives [$($specific)* $nextspecific] $($attr)*] $output; $gensym $($rest)*);
     };
-    ([$group:ident () $($attr:meta)*] $output:ty; $gensym:tt DEFAULT => $value:expr, $($rest:tt)*) => {
-        impl<T> $group for T {
-            default fn reify() -> $output { $value }
+    ([$group:ident $derives:tt [$($specific:tt)*] $($attr:tt)*] $output:ty; @parameterized $name:ident => $value:expr; $gensyms:tt [$(($tysym:ident: $($args:tt)*))*] [$(($bsym:ident: $bound:ident))*] [$($sym:ident)*]) => {
+        _tlsm_meta_filter_struct! { []
+            $(#$attr)*
+            $(#$specific)*
+            pub struct $name < $($tysym: $($args)*),* >(::std::marker::PhantomData<($($tysym),*)>);
         }
 
-        _tlsm_concrete!([$group () $($attr)*] $output; $gensym $($rest)*);
+        _tlsm_meta_filter_impl! { []
+            $(#$attr)*
+            $(#$specific)*
+            impl< $($bsym: $bound),* > $group for $name<$($bsym),*> {
+                #[allow(non_snake_case)]
+                fn reify() -> $output { $(let $sym = <$sym>::reify();)* $value }
+            }
+        }
     };
-    ([$group:ident ($fbound:ident $(+ $bound:ident)*) $($attr:meta)*] $output:ty; $gensym:tt DEFAULT => $value:expr, $($rest:tt)*) => {
-        impl<T> $group for T where T: $fbound $(+ $bound)* {
-            default fn reify() -> $output { $value }
+    ([$group:ident () [$($specific:tt)*] $($attr:tt)*] $output:ty; $gensym:tt DEFAULT => $value:expr, $($rest:tt)*) => {
+        _tlsm_meta_filter_impl! { []
+            $(#$attr)*
+            $(#$specific)*
+            impl<T> $group for T {
+                default fn reify() -> $output { $value }
+            }
         }
 
-        _tlsm_concrete!([$group ($fbound $(+ $bound)*) $($attr)*] $output; $gensym $($rest)*);
+        _tlsm_concrete!([$group () [] $($attr)*] $output; $gensym $($rest)*);
     };
-    ([$group:ident $derives:tt $($attr:meta)*] $output:ty; $gensym:tt $name:ident => $value:expr, $($rest:tt)*) => {
-        $(#[$attr])*
-        pub struct $name;
-
-        impl $group for $name {
-            fn reify() -> $output { $value }
+    ([$group:ident ($fbound:ident $(+ $bound:ident)*) [$($specific:tt)*] $($attr:tt)*] $output:ty; $gensym:tt DEFAULT => $value:expr, $($rest:tt)*) => {
+        _tlsm_meta_filter_impl! { []
+            $(#$attr)*
+            $(#$specific)*
+            impl<T> $group for T where T: $fbound $(+ $bound)* {
+                default fn reify() -> $output { $value }
+            }
         }
 
-        _tlsm_concrete!([$group $derives $($attr)*] $output; $gensym $($rest)*);
+        _tlsm_concrete!([$group ($fbound $(+ $bound)*) [] $($attr)*] $output; $gensym $($rest)*);
     };
-    ($attrs:tt $output:ty; $gensym:tt $name:ident($($args:tt)*) => $value:expr, $($rest:tt)*) => {
-        _tlsm_concrete!($attrs $output; @parameterized $name => $value; $gensym [] [] [] $($args)*);
-        _tlsm_concrete!($attrs $output; $gensym $($rest)*);
+    ([$group:ident $derives:tt [$($specific:tt)*] $($attr:tt)*] $output:ty; $gensym:tt $name:ident => $value:expr, $($rest:tt)*) => {
+        _tlsm_meta_filter_struct! { []
+            $(#$attr)*
+            $(#$specific)*
+            pub struct $name;
+        }
+
+        _tlsm_meta_filter_impl! { []
+            $(#$attr)*
+            $(#$specific)*
+            impl $group for $name {
+                fn reify() -> $output { $value }
+            }
+        }
+
+        _tlsm_concrete!([$group $derives [] $($attr)*] $output; $gensym $($rest)*);
+    };
+    ([$group:ident $derives:tt [$($specific:tt)*] $($attr:tt)*] $output:ty; $gensym:tt $name:ident($($args:tt)*) => $value:expr, $($rest:tt)*) => {
+        _tlsm_concrete!([$group $derives [$($specific)*] $($attr)*] $output; @parameterized $name => $value; $gensym [] [] [] $($args)*);
+        _tlsm_concrete!([$group $derives [] $($attr)*] $output; $gensym $($rest)*);
     };
     ($attrs:tt $output:ty; $gensym:tt) => {};
 }
