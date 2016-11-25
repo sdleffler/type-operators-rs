@@ -8,8 +8,7 @@ mod test {
     type_operators! {
         [A, B, C, D, E]
 
-        #[derive(Debug, Default)]
-        concrete Nat: Default => usize {
+        concrete Nat: Default => usize where #[derive(Debug, Default)] {
             P => 0,
             I(N: Nat = P) => 1 + 2 * N,
             O(N: Nat = P) => 2 * N,

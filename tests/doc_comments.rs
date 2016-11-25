@@ -3,9 +3,12 @@ extern crate type_operators;
 
 use std::fmt::Debug;
 
+
 type_operators! {
     [A, B, C, D, E]
 
+    /// This is a doc comment. It should be compiled into a comment *only* on the generated `Nat`
+    /// trait.
     data Nat: Default + Debug where #[derive(Default, Debug)] {
         P,
         I(Nat = P),
@@ -16,6 +19,8 @@ type_operators! {
         DEFAULT,
     }
 
+    /// As this is also a doc comment, it should also be compiled into a comment *only* on the
+    /// generated `Adding` trait.
     (Sum) Adding(Nat, Nat): Nat {
         [P, P] => P
         forall (N: Nat) {

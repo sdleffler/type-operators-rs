@@ -1,3 +1,5 @@
+#![feature(trace_macros)]
+
 //! # The `type_operators` macro - a DSL for declaring type operators and type-level logic in Rust.
 //!
 //! This crate contains a macro for declaring type operators in Rust. Type operators are like functions
@@ -225,8 +227,7 @@
 //! type_operators! {
 //!     [A, B, C, D, E]
 //!
-//!     #[derive(Default, Debug)]
-//!     data Nat: Default + Debug {
+//!     data Nat: Default + Debug where #[derive(Default, Debug)] {
 //!         P,
 //!         I(Nat = P),
 //!         O(Nat = P),
@@ -260,7 +261,10 @@
 //! ```
 //!
 //! Note the block `#[cfg(features = "specialization")] { ... }`. This tells `type_operators!` to add the attribute
-//! `#[cfg(features = "specialization")]` to every `impl` declared inside.
+//! `#[cfg(features = "specialization")]` to every `impl` declared inside. It's also worth noting that adding derives
+//! to every single statement inside a `concrete` or `data` declaration can be done as shown above with a `where`
+//! clause-like structure - the reason we have to do this is because if we were allowed to define it the intuitive
+//! way, there would be no easy way to extract doc comments on the group trait (thanks to macro parsing ambiguities.)
 //!
 //! Current bugs/improvements to be made:
 //! - Bounds in type operators are currently restricted to identifiers only - they should be augmented with a LISP-like
@@ -454,20 +458,37 @@
 /// ```
 #[macro_export]
 macro_rules! type_operators {
-    ($gensym:tt $(#$attr:tt)* data $name:ident: $fbound:ident $(+ $bound:ident)* { $($stuff:tt)* } $($rest:tt)*) => {
+    ($gensym:tt $(#$docs:tt)* data $name:ident: $fbound:ident $(+ $bound:ident)* where $(#$attr:tt)+ { $($stuff:tt)* } $($rest:tt)*) => {
+        $(#$docs)*
         pub trait $name: $fbound $(+ $bound)* {}
 
         _tlsm_data!([$name ($fbound $(+ $bound)*) [] $($attr)*] $gensym $($stuff)*);
         type_operators!($gensym $($rest)*);
     };
-    ($gensym:tt $(#$attr:tt)* data $name:ident { $($stuff:tt)* } $($rest:tt)*) => {
+    ($gensym:tt $(#$docs:tt)* data $name:ident where $(#$attr:tt)+ { $($stuff:tt)* } $($rest:tt)*) => {
+        $(#$docs)*
         pub trait $name {}
 
         _tlsm_data!([$name () [] $($attr)*] $gensym $($stuff)*);
         type_operators!($gensym $($rest)*);
     };
+    ($gensym:tt $(#$docs:tt)* data $name:ident: $fbound:ident $(+ $bound:ident)* { $($stuff:tt)* } $($rest:tt)*) => {
+        $(#$docs)*
+        pub trait $name: $fbound $(+ $bound)* {}
 
-    ($gensym:tt $(#$attr:tt)* concrete $name:ident: $fbound:ident $(+ $bound:ident)* => $output:ty { $($stuff:tt)* } $($rest:tt)*) => {
+        _tlsm_data!([$name ($fbound $(+ $bound)*) []] $gensym $($stuff)*);
+        type_operators!($gensym $($rest)*);
+    };
+    ($gensym:tt $(#$docs:tt)* data $name:ident { $($stuff:tt)* } $($rest:tt)*) => {
+        $(#$docs)*
+        pub trait $name {}
+
+        _tlsm_data!([$name () []] $gensym $($stuff)*);
+        type_operators!($gensym $($rest)*);
+    };
+
+    ($gensym:tt $(#$docs:tt)* concrete $name:ident: $fbound:ident $(+ $bound:ident)* => $output:ty where $(#$attr:tt)+ { $($stuff:tt)* } $($rest:tt)*) => {
+        $(#$docs)*
         pub trait $name: $fbound $(+ $bound)* {
             fn reify() -> $output;
         }
@@ -475,7 +496,8 @@ macro_rules! type_operators {
         _tlsm_concrete!([$name ($fbound $(+ $bound)*) [] $($attr)*] $output; $gensym $($stuff)*);
         type_operators!($gensym $($rest)*);
     };
-    ($gensym:tt $(#$attr:tt)* concrete $name:ident => $output:ty { $($stuff:tt)* } $($rest:tt)*) => {
+    ($gensym:tt $(#$docs:tt)* concrete $name:ident => $output:ty where $(#$attr:tt)+ { $($stuff:tt)* } $($rest:tt)*) => {
+        $(#$docs)*
         pub trait $name {
             fn reify() -> $output;
         }
@@ -483,10 +505,34 @@ macro_rules! type_operators {
         _tlsm_concrete!([$name () [] $($attr)*] $output; $gensym $($stuff)*);
         type_operators!($gensym $($rest)*);
     };
+    ($gensym:tt $(#$docs:tt)* concrete $name:ident: $fbound:ident $(+ $bound:ident)* => $output:ty { $($stuff:tt)* } $($rest:tt)*) => {
+        $(#$docs)*
+        pub trait $name: $fbound $(+ $bound)* {
+            fn reify() -> $output;
+        }
 
-    ($gensym:tt $(#$attr:tt)* ($alias:ident) $machine:ident ($($kind:tt),*): $out:tt { $($states:tt)* } $($rest:tt)*) => {
-        _tlsm_machine!([$($attr)*] $alias $machine $gensym [$($kind),*] [] $out);
+        _tlsm_concrete!([$name ($fbound $(+ $bound)*) []] $output; $gensym $($stuff)*);
+        type_operators!($gensym $($rest)*);
+    };
+    ($gensym:tt $(#$docs:tt)* concrete $name:ident => $output:ty { $($stuff:tt)* } $($rest:tt)*) => {
+        $(#$docs)*
+        pub trait $name {
+            fn reify() -> $output;
+        }
+
+        _tlsm_concrete!([$name () []] $output; $gensym $($stuff)*);
+        type_operators!($gensym $($rest)*);
+    };
+
+    ($gensym:tt $(#$docs:tt)* ($alias:ident) $machine:ident ($($kind:tt),*): $out:tt where $(#$attr:tt)* { $($states:tt)* } $($rest:tt)*) => {
+        _tlsm_machine!([$($docs)*] [$($attr)*] $alias $machine $gensym [$($kind),*] [] $out);
         _tlsm_states!($machine [$($attr)*] $($states)*);
+
+        type_operators!($gensym $($rest)*);
+    };
+    ($gensym:tt $(#$docs:tt)* ($alias:ident) $machine:ident ($($kind:tt),*): $out:tt { $($states:tt)* } $($rest:tt)*) => {
+        _tlsm_machine!([$($docs)*] [] $alias $machine $gensym [$($kind),*] [] $out);
+        _tlsm_states!($machine [] $($states)*);
 
         type_operators!($gensym $($rest)*);
     };
@@ -646,13 +692,14 @@ macro_rules! _tlsm_states {
 
 #[macro_export]
 macro_rules! _tlsm_machine {
-    ($attrs:tt $alias:ident $machine:ident [$gensym:ident $(, $gensyms:ident)*] [_ $(, $kinds:tt)*] [$($accum:tt)*] $out:tt) => {
-        _tlsm_machine!($attrs $alias $machine [$($gensyms),*] [$($kinds),*] [$($accum)* ($gensym)] $out);
+    ($docs:tt $attrs:tt $alias:ident $machine:ident [$gensym:ident $(, $gensyms:ident)*] [_ $(, $kinds:tt)*] [$($accum:tt)*] $out:tt) => {
+        _tlsm_machine!($docs $attrs $alias $machine [$($gensyms),*] [$($kinds),*] [$($accum)* ($gensym)] $out);
     };
-    ($attrs:tt $alias:ident $machine:ident [$gensym:ident $(, $gensyms:ident)*] [$kind:tt $(, $kinds:tt)*] [$($accum:tt)*] $out:tt) => {
-        _tlsm_machine!($attrs $alias $machine [$($gensyms),*] [$($kinds),*] [$($accum)* ($gensym: $kind)] $out);
+    ($docs:tt $attrs:tt $alias:ident $machine:ident [$gensym:ident $(, $gensyms:ident)*] [$kind:tt $(, $kinds:tt)*] [$($accum:tt)*] $out:tt) => {
+        _tlsm_machine!($docs $attrs $alias $machine [$($gensyms),*] [$($kinds),*] [$($accum)* ($gensym: $kind)] $out);
     };
-    ([$($attr:tt)*] $alias:ident $machine:ident $gensym:tt [] [($fsym:ident $($fbound:tt)*) $(($sym:ident $($bound:tt)*))+] _) => {
+    ([$($docs:tt)*] [$($attr:tt)*] $alias:ident $machine:ident $gensym:tt [] [($fsym:ident $($fbound:tt)*) $(($sym:ident $($bound:tt)*))+] _) => {
+        $(#$docs)*
         $(#$attr)*
         pub trait $machine < $($sym $($bound)*),+ > $($fbound)* {
             type Output;
@@ -661,7 +708,8 @@ macro_rules! _tlsm_machine {
         $(#$attr)*
         pub type $alias < $fsym $($fbound)* $(, $sym $($bound)*)+ > = <$fsym as $machine< $($sym),+ >>::Output;
     };
-    ([$($attr:tt)*] $alias:ident $machine:ident $gensym:tt [] [($fsym:ident $($fbound:tt)*)] _) => {
+    ([$($docs:tt)*] [$($attr:tt)*] $alias:ident $machine:ident $gensym:tt [] [($fsym:ident $($fbound:tt)*)] _) => {
+        $(#$docs)*
         $(#$attr)*
         pub trait $machine $($fbound)* {
             type Output;
@@ -670,7 +718,8 @@ macro_rules! _tlsm_machine {
         $(#$attr)*
         pub type $alias < $fsym $($fbound)* > = <$fsym as $machine>::Output;
     };
-    ([$($attr:tt)*] $alias:ident $machine:ident $gensym:tt [] [($fsym:ident $($fbound:tt)*) $(($sym:ident $($bound:tt)*))+] $out:ident) => {
+    ([$($docs:tt)*] [$($attr:tt)*] $alias:ident $machine:ident $gensym:tt [] [($fsym:ident $($fbound:tt)*) $(($sym:ident $($bound:tt)*))+] $out:ident) => {
+        $(#$docs)*
         $(#$attr)*
         pub trait $machine < $($sym $($bound)*),+ > $($fbound)* {
             type Output: $out;
@@ -679,7 +728,8 @@ macro_rules! _tlsm_machine {
         $(#$attr)*
         pub type $alias < $fsym $($fbound)* $(, $sym $($bound)*)+ > = <$fsym as $machine< $($sym),+ >>::Output;
     };
-    ([$($attr:tt)*] $alias:ident $machine:ident $gensym:tt [] [($fsym:ident $($fbound:tt)*)] $out:ident) => {
+    ([$($docs:tt)*] [$($attr:tt)*] $alias:ident $machine:ident $gensym:tt [] [($fsym:ident $($fbound:tt)*)] $out:ident) => {
+        $(#$docs)*
         $(#$attr)*
         pub trait $machine $($fbound)* {
             type Output: $out;

@@ -11,8 +11,7 @@ mod test {
     type_operators! {
         [A, B, C, D, E]
 
-        #[derive(Default, Debug)]
-        data Nat: Default + Debug {
+        data Nat: Default + Debug where #[derive(Default, Debug)] {
             P,
             I(Nat = P),
             O(Nat = P),
@@ -21,8 +20,7 @@ mod test {
             DEFAULT,
         }
 
-        #[derive(Default, Debug)]
-        data Bool {
+        data Bool where #[derive(Default, Debug)] {
             False,
             True,
             DEFAULT,
