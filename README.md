@@ -216,8 +216,7 @@ as well as individual elements inside them. In addition, attributes can be added
 type_operators! {
     [A, B, C, D, E]
 
-    #[derive(Default, Debug)]
-    data Nat: Default + Debug {
+    data Nat: Default + Debug where #[derive(Default, Debug)] {
         P,
         I(Nat = P),
         O(Nat = P),
@@ -250,7 +249,10 @@ type_operators! {
 ```
 
 Note the block `#[cfg(features = "specialization")] { ... }`. This tells `type_operators!` to add the attribute
-`#[cfg(features = "specialization")]` to every `impl` declared inside.
+`#[cfg(features = "specialization")]` to every `impl` declared inside. It's also worth noting that adding derives
+to every single statement inside a `concrete` or `data` declaration can be done as shown above with a `where`
+clause-like structure - the reason we have to do this is because if we were allowed to define it the intuitive
+way, there would be no easy way to extract doc comments on the group trait (thanks to macro parsing ambiguities.)
 
 Current bugs/improvements to be made:
 - Bounds in type operators are currently restricted to identifiers only - they should be augmented with a LISP-like
