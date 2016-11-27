@@ -844,7 +844,7 @@ macro_rules! _tlsm_concrete {
         _tlsm_meta_filter_struct! { []
             $(#$attr)*
             $(#$specific)*
-            pub struct $name < $($tysym: ?Sized + $($args)*),* >(::std::marker::PhantomData<($($tysym),*)>);
+            pub struct $name < $($tysym: ?Sized + $($args)*),* >($(::std::marker::PhantomData<$tysym>),*);
         }
 
         _tlsm_meta_filter_impl! { []
