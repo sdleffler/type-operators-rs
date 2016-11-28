@@ -766,14 +766,14 @@ macro_rules! _tlsm_data {
             $(#$attr)*
             $(#$specific)*
 
-            pub struct $name < $($asym: ?Sized + $($args)*),* >($(::std::marker::PhantomData<$($phantom)*>),*);
+            pub struct $name < $($asym: $($args)*),* >($(::std::marker::PhantomData<$($phantom)*>),*);
         }
 
         _tlsm_meta_filter_impl! { []
             $(#$attr)*
             $(#$specific)*
 
-            impl< $($bsym: ?Sized + $($bounds)*),* > $group for $name<$($($phantom)*),*> {}
+            impl< $($bsym: $($bounds)*),* > $group for $name<$($($phantom)*),*> {}
         }
     };
     ([$group:ident $derives:tt [$($specific:tt)*] $($attr:tt)*] $gensym:tt # $nextspecific:tt $($rest:tt)*) => {
@@ -784,7 +784,7 @@ macro_rules! _tlsm_data {
             $(#$attr)*
             $(#$specific)*
 
-            impl<T: ?Sized> $group for T {}
+            impl<T> $group for T {}
         }
 
         _tlsm_data!([$group () [] $($attr)*] $gensym $($rest)*);
@@ -794,7 +794,7 @@ macro_rules! _tlsm_data {
             $(#$attr)*
             $(#$specific)*
 
-            impl<T: ?Sized> $group for T where T: $fbound $(+ $bound)* {}
+            impl<T> $group for T where T: $fbound $(+ $bound)* {}
         }
 
         _tlsm_data!([$group ($fbound $(+ $bound)*) [] $($attr)*] $gensym $($rest)*);
@@ -844,13 +844,13 @@ macro_rules! _tlsm_concrete {
         _tlsm_meta_filter_struct! { []
             $(#$attr)*
             $(#$specific)*
-            pub struct $name < $($tysym: ?Sized + $($args)*),* >($(::std::marker::PhantomData<$tysym>),*);
+            pub struct $name < $($tysym: $($args)*),* >($(::std::marker::PhantomData<$tysym>),*);
         }
 
         _tlsm_meta_filter_impl! { []
             $(#$attr)*
             $(#$specific)*
-            impl< $($bsym: ?Sized + $bound),* > $group for $name<$($bsym),*> {
+            impl< $($bsym: $bound),* > $group for $name<$($bsym),*> {
                 #[allow(non_snake_case)]
                 fn reify() -> $output { $(let $sym = <$sym>::reify();)* $value }
             }
@@ -860,7 +860,7 @@ macro_rules! _tlsm_concrete {
         _tlsm_meta_filter_impl! { []
             $(#$attr)*
             $(#$specific)*
-            impl<T: ?Sized> $group for T {
+            impl<T> $group for T {
                 default fn reify() -> $output { $value }
             }
         }
@@ -871,7 +871,7 @@ macro_rules! _tlsm_concrete {
         _tlsm_meta_filter_impl! { []
             $(#$attr)*
             $(#$specific)*
-            impl<T: ?Sized> $group for T where T: $fbound $(+ $bound)* {
+            impl<T> $group for T where T: $fbound $(+ $bound)* {
                 default fn reify() -> $output { $value }
             }
         }
