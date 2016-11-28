@@ -540,6 +540,12 @@ macro_rules! type_operators {
 
 #[macro_export]
 macro_rules! _tlsm_parse_type {
+    ((@ $external:ident $arg:tt $($more:tt)+)) => {
+        <_tlsm_parse_type!($arg) as $external< $(_tlsm_parse_type!($more)),+ >>::Output
+    };
+    ((@ $external:ident $arg:tt)) => {
+        <_tlsm_parse_type!($arg) as $external>::Output
+    };
     (($parameterized:ident $($arg:tt)*)) => {
         $parameterized<$(_tlsm_parse_type!($arg)),*>
     };
