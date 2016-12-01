@@ -8,10 +8,4 @@ type_operators! {
         Nil,
         Cons(_, List),
     }
-
-    (Foo) Bar(_, _, _, _): _ {
-        forall (L: _, E: _, G: _) {
-
-        }
-    }
 }

@@ -10,7 +10,7 @@ type_operators! {
 
     }
 
-    (Foo) Bar(_, _, _, _): _ {
+    (Foo) Bar(All, All, All, All): All {
 
     }
 }
