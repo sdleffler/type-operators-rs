@@ -1,5 +1,6 @@
 #[macro_use]
 extern crate type_operators;
+use type_operators::All;
 
 pub trait Array<T> {}
 
