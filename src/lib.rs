@@ -700,7 +700,7 @@ macro_rules! _tlsm_machine {
         _tlsm_machine!(@cont [$($docs)*] $attrs $alias $machine [$($gensyms),*] [$($kinds)+] [$($accum)* ($gensym)] $out);
     };
     (@cont $docs:tt $attrs:tt $alias:ident $machine:ident [$gensym:ident $(, $gensyms:ident)*] [_ , $($kinds:tt)+] [$($accum:tt)*] $out:tt) => {
-        _tlsm_machine!(@cont $docs $attrs $alias $machine [$($gensyms),*] [$($kinds),*] [$($accum)* ($gensym)] $out);
+        _tlsm_machine!(@cont $docs $attrs $alias $machine [$($gensyms),*] [$($kinds)+] [$($accum)* ($gensym)] $out);
     };
     ([$($docs:tt)*] $attrs:tt $alias:ident $machine:ident [$gensym:ident $(, $gensyms:ident)*] [_] [$($accum:tt)*] $out:tt) => {
         _tlsm_machine!(@cont [$($docs)*] $attrs $alias $machine [$($gensyms),*] [] [$($accum)* ($gensym)] $out);
