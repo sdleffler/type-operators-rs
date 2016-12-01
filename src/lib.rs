@@ -522,14 +522,14 @@ macro_rules! type_operators {
         type_operators!($gensym $($rest)*);
     };
 
-    ($gensym:tt $(#$docs:tt)* ($alias:ident) $machine:ident ($($kind:tt),*): $out:tt where $(#$attr:tt)* { $($states:tt)* } $($rest:tt)*) => {
-        _tlsm_machine!([$($docs)*] [$($attr)*] $alias $machine $gensym [$($kind),*] [] $out);
+    ($gensym:tt $(#$docs:tt)* ($alias:ident) $machine:ident ($($kind:tt)*): $out:tt where $(#$attr:tt)* { $($states:tt)* } $($rest:tt)*) => {
+        _tlsm_machine!([$($docs)*] [$($attr)*] $alias $machine $gensym [$($kind)*] [] $out);
         _tlsm_states!($machine [$($attr)*] $($states)*);
 
         type_operators!($gensym $($rest)*);
     };
-    ($gensym:tt $(#$docs:tt)* ($alias:ident) $machine:ident ($($kind:tt),*): $out:tt { $($states:tt)* } $($rest:tt)*) => {
-        _tlsm_machine!([$($docs)*] [] $alias $machine $gensym [$($kind),*] [] $out);
+    ($gensym:tt $(#$docs:tt)* ($alias:ident) $machine:ident ($($kind:tt)*): $out:tt { $($states:tt)* } $($rest:tt)*) => {
+        _tlsm_machine!([$($docs)*] [] $alias $machine $gensym [$($kind)*] [] $out);
         _tlsm_states!($machine [] $($states)*);
 
         type_operators!($gensym $($rest)*);
@@ -696,13 +696,55 @@ macro_rules! _tlsm_states {
 
 #[macro_export]
 macro_rules! _tlsm_machine {
-    ($docs:tt $attrs:tt $alias:ident $machine:ident [$gensym:ident $(, $gensyms:ident)*] [_ $(, $kinds:tt)*] [$($accum:tt)*] $out:tt) => {
-        _tlsm_machine!($docs $attrs $alias $machine [$($gensyms),*] [$($kinds),*] [$($accum)* ($gensym)] $out);
+    ([$($docs:tt)*] $attrs:tt $alias:ident $machine:ident [$gensym:ident $(, $gensyms:ident)*] [_ , $($kinds:tt)+] [$($accum:tt)*] $out:tt) => {
+        _tlsm_machine!(@cont [$($docs)*] $attrs $alias $machine [$($gensyms),*] [$($kinds)+] [$($accum)* ($gensym)] $out);
     };
-    ($docs:tt $attrs:tt $alias:ident $machine:ident [$gensym:ident $(, $gensyms:ident)*] [$kind:tt $(, $kinds:tt)*] [$($accum:tt)*] $out:tt) => {
-        _tlsm_machine!($docs $attrs $alias $machine [$($gensyms),*] [$($kinds),*] [$($accum)* ($gensym: $kind)] $out);
+    (@cont $docs:tt $attrs:tt $alias:ident $machine:ident [$gensym:ident $(, $gensyms:ident)*] [_ , $($kinds:tt)+] [$($accum:tt)*] $out:tt) => {
+        _tlsm_machine!(@cont $docs $attrs $alias $machine [$($gensyms),*] [$($kinds),*] [$($accum)* ($gensym)] $out);
     };
-    ([$($docs:tt)*] [$($attr:tt)*] $alias:ident $machine:ident $gensym:tt [] [($fsym:ident $($fbound:tt)*) $(($sym:ident $($bound:tt)*))+] _) => {
+    ([$($docs:tt)*] $attrs:tt $alias:ident $machine:ident [$gensym:ident $(, $gensyms:ident)*] [_] [$($accum:tt)*] $out:tt) => {
+        _tlsm_machine!(@cont [$($docs)*] $attrs $alias $machine [$($gensyms),*] [] [$($accum)* ($gensym)] $out);
+    };
+    (@cont $docs:tt $attrs:tt $alias:ident $machine:ident [$gensym:ident $(, $gensyms:ident)*] [_] [$($accum:tt)*] $out:tt) => {
+        _tlsm_machine!(@cont $docs $attrs $alias $machine [$($gensyms),*] [] [$($accum)* ($gensym)] $out);
+    };
+    ([$($docs:tt)*] $attrs:tt $alias:ident $machine:ident $gensym:tt [$ksym:ident: _ , $($kinds:tt)+] [$($accum:tt)*] $out:tt) => {
+        First parameter cannot be named; use Self instead.
+    };
+    (@cont $docs:tt $attrs:tt $alias:ident $machine:ident $gensym:tt [$ksym:ident: _ , $($kinds:tt)+] [$($accum:tt)*] $out:tt) => {
+        _tlsm_machine!(@cont $docs $attrs $alias $machine $gensym [$($kinds)+] [$($accum)* ($ksym)] $out);
+    };
+    ([$($docs:tt)*] $attrs:tt $alias:ident $machine:ident $gensym:tt [$ksym:ident: _] [$($accum:tt)*] $out:tt) => {
+        First parameter cannot be named; use Self instead.
+    };
+    (@cont $docs:tt $attrs:tt $alias:ident $machine:ident $gensym:tt [$ksym:ident: _] [$($accum:tt)*] $out:tt) => {
+        _tlsm_machine!(@cont $docs $attrs $alias $machine $gensym [] [$($accum)* ($ksym)] $out);
+    };
+    ([$($docs:tt)*] $attrs:tt $alias:ident $machine:ident $gensym:tt [$ksym:ident: $kind:tt, $($kinds:tt)+] [$($accum:tt)*] $out:tt) => {
+        First parameter cannot be named; use Self instead.
+    };
+    (@cont $docs:tt $attrs:tt $alias:ident $machine:ident $gensym:tt [$ksym:ident: $kind:tt, $($kinds:tt)+] [$($accum:tt)*] $out:tt) => {
+        _tlsm_machine!(@cont $docs $attrs $alias $machine $gensym [$($kinds)+] [$($accum)* ($ksym: $kind)] $out);
+    };
+    ([$($docs:tt)*] $attrs:tt $alias:ident $machine:ident $gensym:tt [$ksym:ident: $kind:tt] [$($accum:tt)*] $out:tt) => {
+        First parameter cannot be named; use Self instead.
+    };
+    (@cont $docs:tt $attrs:tt $alias:ident $machine:ident $gensym:tt [$ksym:ident: $kind:tt] [$($accum:tt)*] $out:tt) => {
+        _tlsm_machine!(@cont $docs $attrs $alias $machine $gensym [] [$($accum)* ($ksym: $kind)] $out);
+    };
+    ([$($docs:tt)*] $attrs:tt $alias:ident $machine:ident [$gensym:ident $(, $gensyms:ident)*] [$kind:tt , $($kinds:tt)+] [$($accum:tt)*] $out:tt) => {
+        _tlsm_machine!(@cont [$($docs)*] $attrs $alias $machine [$($gensyms),*] [$($kinds)+] [$($accum)* ($gensym: $kind)] $out);
+    };
+    (@cont $docs:tt $attrs:tt $alias:ident $machine:ident [$gensym:ident $(, $gensyms:ident)*] [$kind:tt , $($kinds:tt)+] [$($accum:tt)*] $out:tt) => {
+        _tlsm_machine!(@cont $docs $attrs $alias $machine [$($gensyms),*] [$($kinds)+] [$($accum)* ($gensym: $kind)] $out);
+    };
+    ([$($docs:tt)*] $attrs:tt $alias:ident $machine:ident [$gensym:ident $(, $gensyms:ident)*] [$kind:tt] [$($accum:tt)*] $out:tt) => {
+        _tlsm_machine!(@cont [$($docs)*] $attrs $alias $machine [$($gensyms),*] [] [$($accum)* ($gensym: $kind)] $out);
+    };
+    (@cont $docs:tt $attrs:tt $alias:ident $machine:ident [$gensym:ident $(, $gensyms:ident)*] [$kind:tt] [$($accum:tt)*] $out:tt) => {
+        _tlsm_machine!(@cont $docs $attrs $alias $machine [$($gensyms),*] [] [$($accum)* ($gensym: $kind)] $out);
+    };
+    (@cont [$($docs:tt)*] [$($attr:tt)*] $alias:ident $machine:ident $gensym:tt [] [($fsym:ident $($fbound:tt)*) $(($sym:ident $($bound:tt)*))+] _) => {
         $(#$docs)*
         $(#$attr)*
         pub trait $machine < $($sym $($bound)*),+ > $($fbound)* {
@@ -712,7 +754,7 @@ macro_rules! _tlsm_machine {
         $(#$attr)*
         pub type $alias < $fsym $($fbound)* $(, $sym $($bound)*)+ > = <$fsym as $machine< $($sym),+ >>::Output;
     };
-    ([$($docs:tt)*] [$($attr:tt)*] $alias:ident $machine:ident $gensym:tt [] [($fsym:ident $($fbound:tt)*)] _) => {
+    (@cont [$($docs:tt)*] [$($attr:tt)*] $alias:ident $machine:ident $gensym:tt [] [($fsym:ident $($fbound:tt)*)] _) => {
         $(#$docs)*
         $(#$attr)*
         pub trait $machine $($fbound)* {
@@ -722,7 +764,27 @@ macro_rules! _tlsm_machine {
         $(#$attr)*
         pub type $alias < $fsym $($fbound)* > = <$fsym as $machine>::Output;
     };
-    ([$($docs:tt)*] [$($attr:tt)*] $alias:ident $machine:ident $gensym:tt [] [($fsym:ident $($fbound:tt)*) $(($sym:ident $($bound:tt)*))+] $out:ident) => {
+    (@cont [$($docs:tt)*] [$($attr:tt)*] $alias:ident $machine:ident $gensym:tt [] [($fsym:ident $($fbound:tt)*) $(($sym:ident $($bound:tt)*))+] ($parameterized:ident $($param:tt)*)) => {
+        $(#$docs)*
+        $(#$attr)*
+        pub trait $machine < $($sym $($bound)*),+ > $($fbound)* {
+            type Output: $parameterized<$(_tlsm_parse_type!($param)),*>;
+        }
+
+        $(#$attr)*
+        pub type $alias < $fsym $($fbound)* $(, $sym $($bound)*)+ > = <$fsym as $machine< $($sym),+ >>::Output;
+    };
+    (@cont [$($docs:tt)*] [$($attr:tt)*] $alias:ident $machine:ident $gensym:tt [] [($fsym:ident $($fbound:tt)*)] ($parameterized:ident $($param:tt)*)) => {
+        $(#$docs)*
+        $(#$attr)*
+        pub trait $machine $($fbound)* {
+            type Output: $parameterized<$(_tlsm_parse_type!($param)),*>;
+        }
+
+        $(#$attr)*
+        pub type $alias < $fsym $($fbound)* > = <$fsym as $machine>::Output;
+    };
+    (@cont [$($docs:tt)*] [$($attr:tt)*] $alias:ident $machine:ident $gensym:tt [] [($fsym:ident $($fbound:tt)*) $(($sym:ident $($bound:tt)*))+] $out:ident) => {
         $(#$docs)*
         $(#$attr)*
         pub trait $machine < $($sym $($bound)*),+ > $($fbound)* {
@@ -732,7 +794,7 @@ macro_rules! _tlsm_machine {
         $(#$attr)*
         pub type $alias < $fsym $($fbound)* $(, $sym $($bound)*)+ > = <$fsym as $machine< $($sym),+ >>::Output;
     };
-    ([$($docs:tt)*] [$($attr:tt)*] $alias:ident $machine:ident $gensym:tt [] [($fsym:ident $($fbound:tt)*)] $out:ident) => {
+    (@cont [$($docs:tt)*] [$($attr:tt)*] $alias:ident $machine:ident $gensym:tt [] [($fsym:ident $($fbound:tt)*)] $out:ident) => {
         $(#$docs)*
         $(#$attr)*
         pub trait $machine $($fbound)* {
@@ -761,25 +823,28 @@ macro_rules! _tlsm_meta_filter_impl {
 
 #[macro_export]
 macro_rules! _tlsm_data {
+    ($attrs:tt @parameterized $name:ident [$gensym:ident $(, $next:ident)*] [$($args:tt)*] [$($bounds:tt)*] [$($phantom:tt)*] _ $(, $($rest:tt)*)*) => {
+        _tlsm_data!($attrs @parameterized $name [$($next),*] [$($args)* ($gensym)] [$($bounds)* ($gensym)] [$($phantom)* ($gensym)] $($($rest)*),*);
+    };
     ($attrs:tt @parameterized $name:ident [$gensym:ident $(, $next:ident)*] [$($args:tt)*] [$($bounds:tt)*] [$($phantom:tt)*] $kind:ident = $default:ty $(, $($rest:tt)*)*) => {
         _tlsm_data!($attrs @parameterized $name [$($next),*] [$($args)* ($gensym: $kind = $default)] [$($bounds)* ($gensym: $kind)] [$($phantom)* ($gensym)] $($($rest)*),*);
     };
     ($attrs:tt @parameterized $name:ident [$gensym:ident $(, $next:ident)*] [$($args:tt)*] [$($bounds:tt)*] [$($phantom:tt)*] $kind:ident $(, $($rest:tt)*)*) => {
         _tlsm_data!($attrs @parameterized $name [$($next),*] [$($args)* ($gensym: $kind)] [$($bounds)* ($gensym: $kind)] [$($phantom)* ($gensym)] $($($rest)*),*);
     };
-    ([$group:ident $derives:tt [$($specific:tt)*] $($attr:tt)*] @parameterized $name:ident $gensyms:tt [$(($asym:ident: $($args:tt)*))*] [$(($bsym:ident: $($bounds:tt)*))*] [$(($($phantom:tt)*))*]) => {
+    ([$group:ident $derives:tt [$($specific:tt)*] $($attr:tt)*] @parameterized $name:ident $gensyms:tt [$(($asym:ident $($args:tt)*))*] [$(($bsym:ident $($bounds:tt)*))*] [$(($($phantom:tt)*))*]) => {
         _tlsm_meta_filter_struct! { []
             $(#$attr)*
             $(#$specific)*
 
-            pub struct $name < $($asym: $($args)*),* >($(::std::marker::PhantomData<$($phantom)*>),*);
+            pub struct $name < $($asym $($args)*),* >($(::std::marker::PhantomData<$($phantom)*>),*);
         }
 
         _tlsm_meta_filter_impl! { []
             $(#$attr)*
             $(#$specific)*
 
-            impl< $($bsym: $($bounds)*),* > $group for $name<$($($phantom)*),*> {}
+            impl< $($bsym $($bounds)*),* > $group for $name<$($($phantom)*),*> {}
         }
     };
     ([$group:ident $derives:tt [$($specific:tt)*] $($attr:tt)*] $gensym:tt # $nextspecific:tt $($rest:tt)*) => {
