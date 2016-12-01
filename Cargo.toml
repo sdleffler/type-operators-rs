@@ -1,6 +1,6 @@
 [package]
 name = "type-operators"
-version = "0.3.3"
+version = "0.3.4"
 authors = ["Sean Leffler <sean@errno.com>"]
 
 description = "A macro system for creating type operators in Rust and writing type-level logic."
