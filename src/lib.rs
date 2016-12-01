@@ -601,7 +601,7 @@ macro_rules! _tlsm_states {
     (@dispatch [$($attr:meta)*] $machine:ident $quantified:tt # [$newattr:meta] { $($head:tt $body:tt $tail:tt)* }) => {
         _tlsm_states!(@dispatchgroup [$($attr)* $newattr] $machine $quantified $($head $body $tail)*);
     };
-    (@dispatch $attrs:tt $machine:ident ($(($lsym:ident: $lbound:ident))*) forall ($($rsym:ident: $rbound:ident),*) { $($head:tt $body:tt $tail:tt)* }) => {
+    (@dispatch $attrs:tt $machine:ident ($(($lsym:ident: $lbound:tt))*) forall ($($rsym:ident: $rbound:tt),*) { $($head:tt $body:tt $tail:tt)* }) => {
         _tlsm_states!(@dispatchgroup $attrs $machine ($(($lsym: $lbound))* $(($rsym: $rbound))*) $($head $body $tail)*);
     };
     (@dispatch $attrs:tt $machine:ident $quantified:tt $input:tt => $output:tt) => {
