@@ -276,7 +276,7 @@
 /// The `All` trait provides a workaround to the current parsing problem of a lack of truly unbounded type operator
 /// arguments. It's implemented for all types.
 pub trait All {}
-impl<T> All for T {}
+impl<T: ?Sized> All for T {}
 
 
 /// The `type_operators` macro does a lot of different things. Specifically, there are two things
