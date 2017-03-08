@@ -830,14 +830,23 @@ macro_rules! _tlsm_meta_filter_impl {
 
 #[macro_export]
 macro_rules! _tlsm_data {
-    ($attrs:tt @parameterized $name:ident [$gensym:ident $(, $next:ident)*] [$($args:tt)*] [$($bounds:tt)*] [$($phantom:tt)*] _ $(, $($rest:tt)*)*) => {
-        _tlsm_data!($attrs @parameterized $name [$($next),*] [$($args)* ($gensym)] [$($bounds)* ($gensym)] [$($phantom)* ($gensym)] $($($rest)*),*);
+    ($attrs:tt @parameterized $name:ident [$gensym:ident $(, $next:ident)*] [$($args:tt)*] [$($bounds:tt)*] [$($phantom:tt)*] _) => {
+        _tlsm_data!($attrs @parameterized $name [$($next),*] [$($args)* ($gensym)] [$($bounds)* ($gensym)] [$($phantom)* ($gensym)]);
     };
-    ($attrs:tt @parameterized $name:ident [$gensym:ident $(, $next:ident)*] [$($args:tt)*] [$($bounds:tt)*] [$($phantom:tt)*] $kind:ident = $default:ty $(, $($rest:tt)*)*) => {
-        _tlsm_data!($attrs @parameterized $name [$($next),*] [$($args)* ($gensym: $kind = $default)] [$($bounds)* ($gensym: $kind)] [$($phantom)* ($gensym)] $($($rest)*),*);
+    ($attrs:tt @parameterized $name:ident [$gensym:ident $(, $next:ident)*] [$($args:tt)*] [$($bounds:tt)*] [$($phantom:tt)*] _ , $($rest:tt)*) => {
+        _tlsm_data!($attrs @parameterized $name [$($next),*] [$($args)* ($gensym)] [$($bounds)* ($gensym)] [$($phantom)* ($gensym)] $($rest)*);
     };
-    ($attrs:tt @parameterized $name:ident [$gensym:ident $(, $next:ident)*] [$($args:tt)*] [$($bounds:tt)*] [$($phantom:tt)*] $kind:ident $(, $($rest:tt)*)*) => {
-        _tlsm_data!($attrs @parameterized $name [$($next),*] [$($args)* ($gensym: $kind)] [$($bounds)* ($gensym: $kind)] [$($phantom)* ($gensym)] $($($rest)*),*);
+    ($attrs:tt @parameterized $name:ident [$gensym:ident $(, $next:ident)*] [$($args:tt)*] [$($bounds:tt)*] [$($phantom:tt)*] $kind:ident = $default:ty) => {
+        _tlsm_data!($attrs @parameterized $name [$($next),*] [$($args)* ($gensym: $kind = $default)] [$($bounds)* ($gensym: $kind)] [$($phantom)* ($gensym)]);
+    };
+    ($attrs:tt @parameterized $name:ident [$gensym:ident $(, $next:ident)*] [$($args:tt)*] [$($bounds:tt)*] [$($phantom:tt)*] $kind:ident = $default:ty , $($rest:tt)*) => {
+        _tlsm_data!($attrs @parameterized $name [$($next),*] [$($args)* ($gensym: $kind = $default)] [$($bounds)* ($gensym: $kind)] [$($phantom)* ($gensym)] $($rest)*);
+    };
+    ($attrs:tt @parameterized $name:ident [$gensym:ident $(, $next:ident)*] [$($args:tt)*] [$($bounds:tt)*] [$($phantom:tt)*] $kind:ident) => {
+        _tlsm_data!($attrs @parameterized $name [$($next),*] [$($args)* ($gensym: $kind)] [$($bounds)* ($gensym: $kind)] [$($phantom)* ($gensym)]);
+    };
+    ($attrs:tt @parameterized $name:ident [$gensym:ident $(, $next:ident)*] [$($args:tt)*] [$($bounds:tt)*] [$($phantom:tt)*] $kind:ident , $($rest:tt)*) => {
+        _tlsm_data!($attrs @parameterized $name [$($next),*] [$($args)* ($gensym: $kind)] [$($bounds)* ($gensym: $kind)] [$($phantom)* ($gensym)] $($rest)*);
     };
     ([$group:ident $derives:tt [$($specific:tt)*] $($attr:tt)*] @parameterized $name:ident $gensyms:tt [$(($asym:ident $($args:tt)*))*] [$(($bsym:ident $($bounds:tt)*))*] [$(($($phantom:tt)*))*]) => {
         _tlsm_meta_filter_struct! { []
@@ -903,17 +912,29 @@ macro_rules! _tlsm_data {
 
 #[macro_export]
 macro_rules! _tlsm_concrete {
-    ($attrs:tt $output:ty; @parameterized $name:ident => $value:expr; $gensym:tt [$($args:tt)*] [$($bounds:tt)*] [$($syms:ident)*] $sym:ident: $kind:ident = $default:ty $(, $($rest:tt)*)*) => {
-        _tlsm_concrete!($attrs $output; @parameterized $name => $value; $gensym [$($args)* ($sym: $kind = $default)] [$($bounds)* ($sym: $kind)] [$($syms)* $sym] $($($rest)*),*);
+    ($attrs:tt $output:ty; @parameterized $name:ident => $value:expr; $gensym:tt [$($args:tt)*] [$($bounds:tt)*] [$($syms:ident)*] $sym:ident: $kind:ident = $default:ty) => {
+        _tlsm_concrete!($attrs $output; @parameterized $name => $value; $gensym [$($args)* ($sym: $kind = $default)] [$($bounds)* ($sym: $kind)] [$($syms)* $sym]);
     };
-    ($attrs:tt $output:ty; @parameterized $name:ident => $value:expr; $gensym:tt [$($args:tt)*] [$($bounds:tt)*] [$($syms:ident)*] $sym:ident: $kind:ident $(, $($rest:tt)*)*) => {
-        _tlsm_concrete!($attrs $output; @parameterized $name => $value; $gensym [$($args)* ($sym: $kind)] [$($bounds)* ($sym: $kind)] [$($syms)* $sym] $($($rest)*),*);
+    ($attrs:tt $output:ty; @parameterized $name:ident => $value:expr; $gensym:tt [$($args:tt)*] [$($bounds:tt)*] [$($syms:ident)*] $sym:ident: $kind:ident = $default:ty , $($rest:tt)*) => {
+        _tlsm_concrete!($attrs $output; @parameterized $name => $value; $gensym [$($args)* ($sym: $kind = $default)] [$($bounds)* ($sym: $kind)] [$($syms)* $sym] $($rest)*);
     };
-    ($attrs:tt $output:ty; @parameterized $name:ident => $value:expr; [$gensym:ident $(, $next:ident)*] [$($args:tt)*] [$($bounds:tt)*] $syms:tt $kind:ident = $default:ty $(, $($rest:tt)*)*) => {
-        _tlsm_concrete!($attrs $output; @parameterized $name => $value; [$($next),*] [$($args)* ($gensym: $kind = $default)] [$($bounds)* ($gensym: $kind)] $syms $($($rest)*),*);
+    ($attrs:tt $output:ty; @parameterized $name:ident => $value:expr; $gensym:tt [$($args:tt)*] [$($bounds:tt)*] [$($syms:ident)*] $sym:ident: $kind:ident) => {
+        _tlsm_concrete!($attrs $output; @parameterized $name => $value; $gensym [$($args)* ($sym: $kind)] [$($bounds)* ($sym: $kind)] [$($syms)* $sym]);
     };
-    ($attrs:tt $output:ty; @parameterized $name:ident => $value:expr; [$gensym:ident $(, $next:ident)*] [$($args:tt)*] [$($bounds:tt)*] $syms:tt $kind:ident $(, $($rest:tt)*)*) => {
-        _tlsm_concrete!($attrs $output; @parameterized $name => $value; [$($next),*] [$($args)* ($gensym: $kind)] [$($bounds)* ($gensym: $kind)] $syms $($($rest)*),*);
+    ($attrs:tt $output:ty; @parameterized $name:ident => $value:expr; $gensym:tt [$($args:tt)*] [$($bounds:tt)*] [$($syms:ident)*] $sym:ident: $kind:ident , $($rest:tt)*) => {
+        _tlsm_concrete!($attrs $output; @parameterized $name => $value; $gensym [$($args)* ($sym: $kind)] [$($bounds)* ($sym: $kind)] [$($syms)* $sym] $($rest)*);
+    };
+    ($attrs:tt $output:ty; @parameterized $name:ident => $value:expr; [$gensym:ident $(, $next:ident)*] [$($args:tt)*] [$($bounds:tt)*] $syms:tt $kind:ident = $default:ty) => {
+        _tlsm_concrete!($attrs $output; @parameterized $name => $value; [$($next),*] [$($args)* ($gensym: $kind = $default)] [$($bounds)* ($gensym: $kind)] $syms);
+    };
+    ($attrs:tt $output:ty; @parameterized $name:ident => $value:expr; [$gensym:ident $(, $next:ident)*] [$($args:tt)*] [$($bounds:tt)*] $syms:tt $kind:ident = $default:ty , $($rest:tt)*) => {
+        _tlsm_concrete!($attrs $output; @parameterized $name => $value; [$($next),*] [$($args)* ($gensym: $kind = $default)] [$($bounds)* ($gensym: $kind)] $syms $($rest)*);
+    };
+    ($attrs:tt $output:ty; @parameterized $name:ident => $value:expr; [$gensym:ident $(, $next:ident)*] [$($args:tt)*] [$($bounds:tt)*] $syms:tt $kind:ident) => {
+        _tlsm_concrete!($attrs $output; @parameterized $name => $value; [$($next),*] [$($args)* ($gensym: $kind)] [$($bounds)* ($gensym: $kind)] $syms);
+    };
+    ($attrs:tt $output:ty; @parameterized $name:ident => $value:expr; [$gensym:ident $(, $next:ident)*] [$($args:tt)*] [$($bounds:tt)*] $syms:tt $kind:ident , $($rest:tt)*) => {
+        _tlsm_concrete!($attrs $output; @parameterized $name => $value; [$($next),*] [$($args)* ($gensym: $kind)] [$($bounds)* ($gensym: $kind)] $syms $($rest)*);
     };
     ([$group:ident $derives:tt [$($specific:tt)*] $($attr:tt)*] $output:ty; $gensym:tt # $nextspecific:tt $($rest:tt)*) => {
         _tlsm_concrete!([$group $derives [$($specific)* $nextspecific] $($attr)*] $output; $gensym $($rest)*);

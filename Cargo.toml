@@ -1,22 +1,19 @@
 [package]
-name = "type-operators"
-version = "0.3.4"
 authors = ["Sean Leffler <sean@errno.com>"]
-
 description = "A macro system for creating type operators in Rust and writing type-level logic."
-
 documentation = "https://docs.rs/type-operators"
 homepage = "https://github.com/sdleffler/type-operators-rs"
-repository = "https://github.com/sdleffler/type-operators-rs"
-
-readme = "README.md"
-
 keywords = ["type", "type-level", "operator", "macro"]
-
 license = "MIT/Apache-2.0"
+name = "type-operators"
+readme = "README.md"
+repository = "https://github.com/sdleffler/type-operators-rs"
+version = "0.3.5"
+
+[dev-dependencies]
+bit-vec = "0.4.3"
 
 [features]
 default = []
-specialization = []
-
 nightly = ["specialization"]
+specialization = []
