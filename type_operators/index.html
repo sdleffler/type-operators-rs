@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="rustdoc">
+    <meta name="description" content="API documentation for the Rust `type_operators` crate.">
+    <meta name="keywords" content="rust, rustlang, rust-lang, type_operators">
+
+    <title>type_operators - Rust</title>
+
+    <link rel="stylesheet" type="text/css" href="../normalize.css">
+    <link rel="stylesheet" type="text/css" href="../rustdoc.css">
+    <link rel="stylesheet" type="text/css" href="../main.css">
+    
+
+    
+    
+</head>
+<body class="rustdoc">
+    <!--[if lte IE 8]>
+    <div class="warning">
+        This old browser is unsupported and will most likely display funky
+        things.
+    </div>
+    <![endif]-->
+
+    
+
+    <nav class="sidebar">
+        
+        <p class='location'></p><script>window.sidebarCurrent = {name: 'type_operators', ty: 'mod', relpath: '../'};</script>
+    </nav>
+
+    <nav class="sub">
+        <form class="search-form js-only">
+            <div class="search-container">
+                <input class="search-input" name="search"
+                       autocomplete="off"
+                       placeholder="Click or press ‘S’ to search, ‘?’ for more options…"
+                       type="search">
+            </div>
+        </form>
+    </nav>
+
+    <section id='main' class="content mod">
+<h1 class='fqn'><span class='in-band'>Crate <a class='mod' href=''>type_operators</a></span><span class='out-of-band'><span id='render-detail'>
+                   <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
+                       [<span class='inner'>&#x2212;</span>]
+                   </a>
+               </span><a class='srclink' href='../src/type_operators/lib.rs.html#1-1166' title='goto source code'>[src]</a></span></h1>
+<div class='docblock'>
+<h1 id='the-type_operators-macro---a-dsl-for-declaring-type-operators-and-type-level-logic-in-rust' class='section-header'><a href='#the-type_operators-macro---a-dsl-for-declaring-type-operators-and-type-level-logic-in-rust'>The <code>type_operators</code> macro - a DSL for declaring type operators and type-level logic in Rust.</a></h1>
+<p>This crate contains a macro for declaring type operators in Rust. Type operators are like functions
+which act at the type level. The <code>type_operators</code> macro works by translating a LISP-y DSL into a big mess of
+traits and impls with associated types.</p>
+
+<h1 id='the-dsl' class='section-header'><a href='#the-dsl'>The DSL</a></h1>
+<p>Let&#39;s take a look at this fairly small example:</p>
+
+<pre class='rust rust-example-rendered'>
+<span class='macro'>type_operators</span><span class='macro'>!</span> {
+    [<span class='ident'>A</span>, <span class='ident'>B</span>, <span class='ident'>C</span>, <span class='ident'>D</span>, <span class='ident'>E</span>]
+
+    <span class='ident'>data</span> <span class='ident'>Nat</span> {
+        <span class='ident'>P</span>,
+        <span class='ident'>I</span>(<span class='ident'>Nat</span> <span class='op'>=</span> <span class='ident'>P</span>),
+        <span class='ident'>O</span>(<span class='ident'>Nat</span> <span class='op'>=</span> <span class='ident'>P</span>),
+    }
+}</pre>
+
+<p>There are two essential things to note in this example. The first is the &quot;gensym list&quot; - Rust does
+not currently have a way to generate unique identifiers, so we have to supply our own. It is on <em>you</em>
+to avoid clashes between these pseudo-gensyms and the names of the structs involved! If we put <code>P</code>, <code>I</code>, or <code>O</code>
+into the gensym list, things could get really bad! We&#39;d get type errors at compile-time stemming from trait
+bounds, coming from the definitions of type operators later. Thankfully, the gensym list can be fairly small
+and usually never uses more than two or three symbols.</p>
+
+<p>The second thing is the <code>data</code> declaration. This declares a group of structs which fall under a marker trait.
+In our case, <code>Nat</code> is the marker trait generated and <code>P</code>, <code>I</code>, and <code>O</code> are the structs generated. This example
+shows an implementation of natural numbers (positive integers, including zero) which are represented as types.
+So, <code>P</code> indicates the end of a natural number - think of it as a sort of nil; we&#39;re working with a linked list
+here, at the type level. So, <code>I&lt;P&gt;</code> would represent &quot;one plus twice <code>P</code>&quot;, which of course comes out to <code>1</code>;
+<code>O&lt;P&gt;</code> would represent &quot;twice <code>P</code>&quot;, which of course comes out to zero. If we look at <code>I</code> and <code>O</code> as bits of a
+binary number, we come out with a sort of reversed binary representation where the &quot;bit&quot; furthest to the left
+is the least significant bit. As such, <code>O&lt;O&lt;I&gt;&gt;</code> represents <code>4</code>, <code>I&lt;O&lt;O&lt;I&gt;&gt;&gt;</code> represents <code>9</code>, and so on.</p>
+
+<p>When we write <code>I(Nat = P)</code>, the <code>= P</code> denotes a default. This lets us write <code>I</code>, and have it be inferred to be
+<code>I&lt;P&gt;</code>, which is probably what you mean if you just write <code>I</code> alone. <code>Nat</code> gives a trait bound. To better demonstrate,
+here is (roughly) what the above invocation of <code>type_operators</code> expands to:</p>
+
+<pre class='rust rust-example-rendered'>
+
+<span class='kw'>pub</span> <span class='kw'>trait</span> <span class='ident'>Nat</span> {}
+
+<span class='kw'>pub</span> <span class='kw'>struct</span> <span class='ident'>P</span>;
+<span class='kw'>impl</span> <span class='ident'>Nat</span> <span class='kw'>for</span> <span class='ident'>P</span> {}
+
+<span class='kw'>pub</span> <span class='kw'>struct</span> <span class='ident'>I</span><span class='op'>&lt;</span><span class='ident'>A</span>: <span class='ident'>Nat</span> <span class='op'>=</span> <span class='ident'>P</span><span class='op'>&gt;</span>(<span class='ident'>PhantomData</span><span class='op'>&lt;</span>(<span class='ident'>A</span>)<span class='op'>&gt;</span>);
+<span class='kw'>impl</span><span class='op'>&lt;</span><span class='ident'>A</span>: <span class='ident'>Nat</span><span class='op'>&gt;</span> <span class='ident'>Nat</span> <span class='kw'>for</span> <span class='ident'>I</span><span class='op'>&lt;</span><span class='ident'>A</span><span class='op'>&gt;</span> {}
+
+<span class='kw'>pub</span> <span class='kw'>struct</span> <span class='ident'>O</span><span class='op'>&lt;</span><span class='ident'>A</span>: <span class='ident'>Nat</span> <span class='op'>=</span> <span class='ident'>P</span><span class='op'>&gt;</span>(<span class='ident'>PhantomData</span><span class='op'>&lt;</span>(<span class='ident'>A</span>)<span class='op'>&gt;</span>);
+<span class='kw'>impl</span><span class='op'>&lt;</span><span class='ident'>A</span>: <span class='ident'>Nat</span><span class='op'>&gt;</span> <span class='ident'>Nat</span> <span class='kw'>for</span> <span class='ident'>O</span><span class='op'>&lt;</span><span class='ident'>A</span><span class='op'>&gt;</span> {}</pre>
+
+<p>The <code>Undefined</code> value looks a little silly, but it allows for the definition of division in a way which uses
+type-level comparison and branching. More on that later.</p>
+
+<p>The above definition has a problem. We cannot <em>fold</em> our type-level representation down into a numerical representation.
+That makes our type-level natural numbers useless! That&#39;s why <code>type_operators</code> provides another way of defining
+type-level representations, the <code>concrete</code> declaration:</p>
+
+<pre class='rust rust-example-rendered'>
+
+<span class='macro'>type_operators</span><span class='macro'>!</span> {
+    [<span class='ident'>A</span>, <span class='ident'>B</span>, <span class='ident'>C</span>, <span class='ident'>D</span>, <span class='ident'>E</span>]
+
+    <span class='ident'>concrete</span> <span class='ident'>Nat</span> <span class='op'>=&gt;</span> <span class='ident'>usize</span> {
+        <span class='ident'>P</span> <span class='op'>=&gt;</span> <span class='number'>0</span>,
+        <span class='ident'>I</span>(<span class='ident'>N</span>: <span class='ident'>Nat</span> <span class='op'>=</span> <span class='ident'>P</span>) <span class='op'>=&gt;</span> <span class='number'>1</span> <span class='op'>+</span> <span class='number'>2</span> <span class='op'>*</span> <span class='ident'>N</span>,
+        <span class='ident'>O</span>(<span class='ident'>N</span>: <span class='ident'>Nat</span> <span class='op'>=</span> <span class='ident'>P</span>) <span class='op'>=&gt;</span> <span class='number'>2</span> <span class='op'>*</span> <span class='ident'>N</span>,
+        <span class='ident'>Undefined</span> <span class='op'>=&gt;</span> <span class='macro'>panic</span><span class='macro'>!</span>(<span class='string'>&quot;Undefined type-level arithmetic result!&quot;</span>),
+    }
+}</pre>
+
+<p>This adds an associated function to the <code>Nat</code> trait called <code>reify</code>, which allows you to turn your type-level
+representations into concrete values of type <code>usize</code> (in this case.) If you&#39;ve ever seen primitive-recursive
+functions, then this should look a bit familiar to you - it&#39;s reminiscent of a recursion scheme, which is a
+way of recursing over a value to map it into something else. (See also &quot;catamorphism&quot;.) It should be fairly
+obvious how this works, but if not, here&#39;s a breakdown:</p>
+
+<ul>
+<li><code>P</code> always represents zero, so we say that <code>P =&gt; 0</code>. Simple.</li>
+<li><code>I</code> represents double its argument plus one. If we annotate our macro&#39;s definition with a variable <code>N</code>,
+then <code>type_operators</code> will automatically call <code>N::reify()</code> and substitute that value for your <code>N</code> in the
+expression you give it. So, in this way, we define the reification of <code>I</code> to be one plus two times the
+value that <code>N</code> reifies to.</li>
+<li><code>O</code> represents double its argument, so this one&#39;s straightforward - it&#39;s like <code>I</code>, but without the <code>1 +</code>.</li>
+</ul>
+
+<p>Okay. So now that we&#39;ve got that under our belts, let&#39;s dive into something a bit more complex: let&#39;s define
+a type operator for addition.</p>
+
+<p><code>type_operators</code> allows you to define recursive functions. Speaking generally, that&#39;s what you&#39;ll really need
+to pull this off whatever you do. (And speaking precisely, this whole approach was inspired by primitive-recursion.)
+So let&#39;s think about how we can add two binary numbers, starting at the least-significant bit:
+- Obviously, <code>P + P</code> should be <code>P</code>, since zero plus zero is zero.
+- What about <code>P + O&lt;N&gt;</code>, for any natural number <code>N</code>? Well, that should be <code>O&lt;N&gt;</code>. Same with <code>I&lt;N&gt;</code>. As a matter of
+  fact, now it looks pretty obvious that whenever we have <code>P</code> on one side, we should just say that whatever&#39;s on the
+  other side is the result.
+So our little table of operations now looks like:
+<code>text [P, P] =&gt; P [P, (O N)] =&gt; (O N) [P, (I N)] =&gt; (I N) [(O N), P] =&gt; (O N) [(I N), P] =&gt; (I N)</code>
+Now you&#39;re probably saying, &quot;whoa! That doesn&#39;t look like Rust at all! Back up!&quot; And that&#39;s because it <em>isn&#39;t.</em> I made
+a little LISP-like dialect to describe Rust types for this project because it makes things a lot easier to parse in
+macros; specifically, each little atomic type can be wrapped up in a pair of parentheses, while with angle brackets,
+Rust has to parse them as separate tokens. In this setup, <code>(O N)</code> means <code>O&lt;N&gt;</code>,
+just <code>P</code> alone means <code>P</code>, etc. etc. The notation <code>[X, Y] =&gt; Z</code> means &quot;given inputs <code>X</code> and <code>Y</code>, produce output <code>Z</code>.&quot; So
+it&#39;s a sort of pattern-matching.</p>
+
+<p>Now let&#39;s look at the more complex cases. We need to cover all the parts where combinations of <code>O&lt;N&gt;</code> and <code>I&lt;N&gt;</code> are
+added together.
+- <code>O&lt;M&gt; + O&lt;N&gt;</code> should come out to <code>O&lt;M + N&gt;</code>. This is a fairly intuitive result, but we can describe it mathematically
+  as <code>2 * m + 2 * n == 2 * (m + n)</code>. So, it&#39;s the distributive law, and most importantly, it cuts down on the <em>structure</em>
+  of the arguments - we go from adding <code>O&lt;M&gt;</code> and <code>O&lt;N&gt;</code> to <code>M</code> and <code>N</code>, whatever they are, and <code>M</code> and <code>N</code> are clearly
+  less complex than <code>O&lt;M&gt;</code> and <code>O&lt;N&gt;</code>. If we always see that our outputs have less complexity than the inputs, then we&#39;re
+  that much closer to a proof that our little type operator always terminates with a result!
+- <code>I&lt;M&gt; + O&lt;N&gt;</code> and <code>O&lt;M&gt; + I&lt;N&gt;</code> should come out to <code>I&lt;M + N&gt;</code>. Again, fairly intuitive. We have <code>1 + 2 * m + 2 * n</code>,
+  which we can package up into <code>1 + 2 * (m + n)</code>.
+- <code>I&lt;M&gt; + I&lt;N&gt;</code> is the trickiest part here. We have <code>1 + 2 * m + 1 + 2 * m == 2 + 2 * m + 2 * n == 2 * (1 + m + n)</code>. We
+  can implement this as <code>I&lt;I + M + N&gt;</code>, but we can do a little bit better. More on that later, we&#39;ll head with the simpler
+  implementation for now.</p>
+
+<p>Let&#39;s add these to the table:
+<code>text [P, P] =&gt; P [P, (O N)] =&gt; (O N) [P, (I N)] =&gt; (I N) [(O N), P] =&gt; (O N) [(I N), P] =&gt; (I N) // New: [(O M), (O N)] =&gt; (O (# M N)) [(I M), (O N)] =&gt; (I (# M N)) [(O M), (I N)] =&gt; (I (# M N)) [(I M), (I N)] =&gt; (O (# (# I M) N))</code>
+Here&#39;s something new: the <code>(# ...)</code> notation. This tells the macro, &quot;hey, we wanna recurse.&quot; It&#39;s really shorthand
+for a slightly more complex piece of notation, but they both have one thing in common - <em>when type_operators processes
+the <code>(# ...)</code> notation, it uses it to calculate trait bounds.</em> This is because your type operator won&#39;t compile unless
+it&#39;s absolutely certain that <code>(# M N)</code> will actually have a defined result. At an even higher level, this is the reason
+I wish Rust had &quot;closed type families&quot; - if <code>P</code>, <code>I</code>, and <code>O</code> were in a closed type family <code>Nat</code>, Rust could check at compile-time
+and be absolutely sure that <code>(# M N)</code> existed for all <code>M</code> and <code>N</code> that are in the <code>Nat</code> family.</p>
+
+<p>So then. Let&#39;s load this into an invocation of <code>type_operators</code> to see how it looks like. It&#39;s pretty close to the table,
+but with a couple additions (I&#39;m leaving out <code>Undefined</code> for now because it&#39;s not yet relevant):</p>
+
+<pre class='rust rust-example-rendered'>
+
+<span class='macro'>type_operators</span><span class='macro'>!</span> {
+    [<span class='ident'>A</span>, <span class='ident'>B</span>, <span class='ident'>C</span>, <span class='ident'>D</span>, <span class='ident'>E</span>]
+
+    <span class='ident'>concrete</span> <span class='ident'>Nat</span> <span class='op'>=&gt;</span> <span class='ident'>usize</span> {
+        <span class='ident'>P</span> <span class='op'>=&gt;</span> <span class='number'>0</span>,
+        <span class='ident'>I</span>(<span class='ident'>N</span>: <span class='ident'>Nat</span> <span class='op'>=</span> <span class='ident'>P</span>) <span class='op'>=&gt;</span> <span class='number'>1</span> <span class='op'>+</span> <span class='number'>2</span> <span class='op'>*</span> <span class='ident'>N</span>,
+        <span class='ident'>O</span>(<span class='ident'>N</span>: <span class='ident'>Nat</span> <span class='op'>=</span> <span class='ident'>P</span>) <span class='op'>=&gt;</span> <span class='number'>2</span> <span class='op'>*</span> <span class='ident'>N</span>,
+    }
+
+    (<span class='ident'>Sum</span>) <span class='ident'>Adding</span>(<span class='ident'>Nat</span>, <span class='ident'>Nat</span>): <span class='ident'>Nat</span> {
+        [<span class='ident'>P</span>, <span class='ident'>P</span>] <span class='op'>=&gt;</span> <span class='ident'>P</span>
+        <span class='ident'>forall</span> (<span class='ident'>N</span>: <span class='ident'>Nat</span>) {
+            [(<span class='ident'>O</span> <span class='ident'>N</span>), <span class='ident'>P</span>] <span class='op'>=&gt;</span> (<span class='ident'>O</span> <span class='ident'>N</span>)
+            [(<span class='ident'>I</span> <span class='ident'>N</span>), <span class='ident'>P</span>] <span class='op'>=&gt;</span> (<span class='ident'>I</span> <span class='ident'>N</span>)
+            [<span class='ident'>P</span>, (<span class='ident'>O</span> <span class='ident'>N</span>)] <span class='op'>=&gt;</span> (<span class='ident'>O</span> <span class='ident'>N</span>)
+            [<span class='ident'>P</span>, (<span class='ident'>I</span> <span class='ident'>N</span>)] <span class='op'>=&gt;</span> (<span class='ident'>I</span> <span class='ident'>N</span>)
+        }
+        <span class='ident'>forall</span> (<span class='ident'>N</span>: <span class='ident'>Nat</span>, <span class='ident'>M</span>: <span class='ident'>Nat</span>) {
+            [(<span class='ident'>O</span> <span class='ident'>M</span>), (<span class='ident'>O</span> <span class='ident'>N</span>)] <span class='op'>=&gt;</span> (<span class='ident'>O</span> (<span class='attribute'># <span class='ident'>M</span> <span class='ident'>N</span>))
+            [(<span class='ident'>I</span> <span class='ident'>M</span>), (<span class='ident'>O</span> <span class='ident'>N</span>)]</span> <span class='op'>=&gt;</span> (<span class='ident'>I</span> (<span class='attribute'># <span class='ident'>M</span> <span class='ident'>N</span>))
+            [(<span class='ident'>O</span> <span class='ident'>M</span>), (<span class='ident'>I</span> <span class='ident'>N</span>)]</span> <span class='op'>=&gt;</span> (<span class='ident'>I</span> (<span class='attribute'># <span class='ident'>M</span> <span class='ident'>N</span>))
+            [(<span class='ident'>I</span> <span class='ident'>M</span>), (<span class='ident'>I</span> <span class='ident'>N</span>)]</span> <span class='op'>=&gt;</span> (<span class='ident'>O</span> (<span class='attribute'># (<span class='attribute'># <span class='ident'>M</span> <span class='ident'>N</span>) <span class='ident'>I</span>))
+        }
+    }
+}</pre>
+
+<p>There are several things to note. First, the definition <code>(Sum) Adding(Nat, Nat): Nat</code>. This says,
+&quot;this type operator takes two <code>Nat</code>s as input and outputs a <code>Nat</code>.&quot; Since addition is implemented
+as a recursive trait under the hood, this means we get a trait definition of the form:</p>
+
+<pre class='rust rust-example-rendered'>
+<span class='kw'>pub</span> <span class='kw'>trait</span> <span class='ident'>Adding</span><span class='op'>&lt;</span><span class='ident'>A</span>: <span class='ident'>Nat</span><span class='op'>&gt;</span>: <span class='ident'>Nat</span> {
+    <span class='kw'>type</span> <span class='ident'>Output</span>: <span class='ident'>Nat</span>;
+}</pre>
+
+<p>The <code>(Sum)</code> bit declares a nice, convenient alias for us, so that instead of typing <code>&lt;X as Adding&lt;Y&gt;&gt;::Output</code>
+to get the sum of two numbers, we can instead type <code>Sum&lt;X, Y&gt;</code>. Much neater.</p>
+
+<p>Second, the &quot;quantifier&quot; sections (the parts with <code>forall</code>) avoid Rust complaining about &quot;undeclared type variables.&quot; In any given
+generic <code>impl</code>, we have to worry about declaring what type variables/generic type parameters we can use in
+that <code>impl</code>. The <code>forall</code> bit modifies the prelude of the <code>impl</code>. For example, <code>forall (N: Nat)</code> causes all the
+<code>impl</code>s inside its little block to be declared as <code>impl&lt;N: Nat&gt; ...</code> instead of <code>impl ...</code>, so that we can use
+<code>N</code> as a variable inside those expressions.</p>
+
+<p>That just about wraps up our short introduction. To finish, here are the rest of the notations specific to our
+little LISP-y dialect, all of which can only be used on the right-hand side of a rule in the DSL:</p>
+
+<ul>
+<li><code>(@TypeOperator ...)</code> invokes another type operator (can be the original caller!) and generates the proper trait bounds.</li>
+<li><code>(% ...)</code> is like <code>(# ...)</code>, but does not generate any trait bounds.</li>
+<li><code>(&amp; &lt;type&gt; where (&lt;where_clause&gt;) (&lt;where_clause&gt;) ...)</code> allows for the definition of custom <code>where</code> clauses for a given
+<code>impl</code>. It can appear anywhere in the right-hand side of a rule in the DSL, but in general should probably always be
+written at the top-level for consistency.</li>
+</ul>
+
+<p>In addition, it is possible to use attributes such as <code>#[derive(...)]</code> or <code>#[cfg(...)]</code> on <code>data</code> and <code>concrete</code> definitions
+as well as individual elements inside them. In addition, attributes can be added to the <code>impl</code>s for rules. For example:</p>
+
+<pre class='rust rust-example-rendered'>
+<span class='macro'>type_operators</span><span class='macro'>!</span> {
+    [<span class='ident'>A</span>, <span class='ident'>B</span>, <span class='ident'>C</span>, <span class='ident'>D</span>, <span class='ident'>E</span>]
+
+    <span class='ident'>data</span> <span class='ident'>Nat</span>: <span class='ident'>Default</span> <span class='op'>+</span> <span class='ident'>Debug</span> <span class='kw'>where</span> <span class='attribute'>#[<span class='ident'>derive</span>(<span class='ident'>Default</span>, <span class='ident'>Debug</span>)]</span> {
+        <span class='ident'>P</span>,
+        <span class='ident'>I</span>(<span class='ident'>Nat</span> <span class='op'>=</span> <span class='ident'>P</span>),
+        <span class='ident'>O</span>(<span class='ident'>Nat</span> <span class='op'>=</span> <span class='ident'>P</span>),
+        <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>features</span> <span class='op'>=</span> <span class='string'>&quot;specialization&quot;</span>)]</span>
+        <span class='ident'>Error</span>,
+        <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>features</span> <span class='op'>=</span> <span class='string'>&quot;specialization&quot;</span>)]</span>
+        <span class='ident'>DEFAULT</span>,
+    }
+
+    (<span class='ident'>Sum</span>) <span class='ident'>Adding</span>(<span class='ident'>Nat</span>, <span class='ident'>Nat</span>): <span class='ident'>Nat</span> {
+        [<span class='ident'>P</span>, <span class='ident'>P</span>] <span class='op'>=&gt;</span> <span class='ident'>P</span>
+        <span class='ident'>forall</span> (<span class='ident'>N</span>: <span class='ident'>Nat</span>) {
+            [(<span class='ident'>O</span> <span class='ident'>N</span>), <span class='ident'>P</span>] <span class='op'>=&gt;</span> (<span class='ident'>O</span> <span class='ident'>N</span>)
+            [(<span class='ident'>I</span> <span class='ident'>N</span>), <span class='ident'>P</span>] <span class='op'>=&gt;</span> (<span class='ident'>I</span> <span class='ident'>N</span>)
+            [<span class='ident'>P</span>, (<span class='ident'>O</span> <span class='ident'>N</span>)] <span class='op'>=&gt;</span> (<span class='ident'>O</span> <span class='ident'>N</span>)
+            [<span class='ident'>P</span>, (<span class='ident'>I</span> <span class='ident'>N</span>)] <span class='op'>=&gt;</span> (<span class='ident'>I</span> <span class='ident'>N</span>)
+        }
+        <span class='ident'>forall</span> (<span class='ident'>N</span>: <span class='ident'>Nat</span>, <span class='ident'>M</span>: <span class='ident'>Nat</span>) {
+            [(<span class='ident'>O</span> <span class='ident'>M</span>), (<span class='ident'>O</span> <span class='ident'>N</span>)] <span class='op'>=&gt;</span> (<span class='ident'>O</span> (<span class='attribute'># <span class='ident'>M</span> <span class='ident'>N</span>))
+            [(<span class='ident'>I</span> <span class='ident'>M</span>), (<span class='ident'>O</span> <span class='ident'>N</span>)]</span> <span class='op'>=&gt;</span> (<span class='ident'>I</span> (<span class='attribute'># <span class='ident'>M</span> <span class='ident'>N</span>))
+            [(<span class='ident'>O</span> <span class='ident'>M</span>), (<span class='ident'>I</span> <span class='ident'>N</span>)]</span> <span class='op'>=&gt;</span> (<span class='ident'>I</span> (<span class='attribute'># <span class='ident'>M</span> <span class='ident'>N</span>))
+            [(<span class='ident'>I</span> <span class='ident'>M</span>), (<span class='ident'>I</span> <span class='ident'>N</span>)]</span> <span class='op'>=&gt;</span> (<span class='ident'>O</span> (<span class='attribute'># (<span class='attribute'># <span class='ident'>M</span> <span class='ident'>N</span>) <span class='ident'>I</span>))
+
+            <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>features</span> <span class='op'>=</span> <span class='string'>&quot;specialization&quot;</span>)]</span> {
+                {<span class='ident'>M</span>, <span class='ident'>N</span>} <span class='op'>=&gt;</span> <span class='ident'>Error</span>
+            }
+        }
+    }
+}</pre>
+
+<p>Note the block <code>#[cfg(features = &quot;specialization&quot;)] { ... }</code>. This tells <code>type_operators!</code> to add the attribute
+<code>#[cfg(features = &quot;specialization&quot;)]</code> to every <code>impl</code> declared inside. It&#39;s also worth noting that adding derives
+to every single statement inside a <code>concrete</code> or <code>data</code> declaration can be done as shown above with a <code>where</code>
+clause-like structure - the reason we have to do this is because if we were allowed to define it the intuitive
+way, there would be no easy way to extract doc comments on the group trait (thanks to macro parsing ambiguities.)</p>
+
+<p>Current bugs/improvements to be made:
+- Bounds in type operators are currently restricted to identifiers only - they should be augmented with a LISP-like
+  dialect similar to the rest of the macro system.</p>
+
+<p>If questions are had, I may be found either at my email (which is listed on GitHub) or on the <code>#rust</code> IRC, where I go by
+the nick <code>sleffy</code>.</p>
+</div><h2 id='macros' class='section-header'><a href="#macros">Macros</a></h2>
+<table>
+                       <tr class=' module-item'>
+                           <td><a class='macro' href='macro._tlsm_concrete.html'
+                                  title='type_operators::_tlsm_concrete'>_tlsm_concrete</a></td>
+                           <td class='docblock-short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='macro' href='macro._tlsm_data.html'
+                                  title='type_operators::_tlsm_data'>_tlsm_data</a></td>
+                           <td class='docblock-short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='macro' href='macro._tlsm_machine.html'
+                                  title='type_operators::_tlsm_machine'>_tlsm_machine</a></td>
+                           <td class='docblock-short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='macro' href='macro._tlsm_meta_filter_impl.html'
+                                  title='type_operators::_tlsm_meta_filter_impl'>_tlsm_meta_filter_impl</a></td>
+                           <td class='docblock-short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='macro' href='macro._tlsm_meta_filter_struct.html'
+                                  title='type_operators::_tlsm_meta_filter_struct'>_tlsm_meta_filter_struct</a></td>
+                           <td class='docblock-short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='macro' href='macro._tlsm_parse_type.html'
+                                  title='type_operators::_tlsm_parse_type'>_tlsm_parse_type</a></td>
+                           <td class='docblock-short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='macro' href='macro._tlsm_states.html'
+                                  title='type_operators::_tlsm_states'>_tlsm_states</a></td>
+                           <td class='docblock-short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='macro' href='macro.type_operators.html'
+                                  title='type_operators::type_operators'>type_operators</a></td>
+                           <td class='docblock-short'>
+                                <p>The <code>type_operators</code> macro does a lot of different things. Specifically, there are two things
+it&#39;s meant to do:
+    1. Make declaring closed type families easier. (Although they never <em>really</em> end up closed... Good enough.)
+    2. Make declaring type operators easier. (Although there are still a lotta problems with this.)</p>
+                           </td>
+                       </tr></table><h2 id='traits' class='section-header'><a href="#traits">Traits</a></h2>
+<table>
+                       <tr class=' module-item'>
+                           <td><a class='trait' href='trait.All.html'
+                                  title='type_operators::All'>All</a></td>
+                           <td class='docblock-short'>
+                                <p>The <code>All</code> trait provides a workaround to the current parsing problem of a lack of truly unbounded type operator
+arguments. It&#39;s implemented for all types.</p>
+                           </td>
+                       </tr></table></section>
+    <section id='search' class="content hidden"></section>
+
+    <section class="footer"></section>
+
+    <aside id="help" class="hidden">
+        <div>
+            <h1 class="hidden">Help</h1>
+
+            <div class="shortcuts">
+                <h2>Keyboard Shortcuts</h2>
+
+                <dl>
+                    <dt>?</dt>
+                    <dd>Show this help dialog</dd>
+                    <dt>S</dt>
+                    <dd>Focus the search field</dd>
+                    <dt>&larrb;</dt>
+                    <dd>Move up in search results</dd>
+                    <dt>&rarrb;</dt>
+                    <dd>Move down in search results</dd>
+                    <dt>&#9166;</dt>
+                    <dd>Go to active search result</dd>
+                    <dt>+</dt>
+                    <dd>Collapse/expand all sections</dd>
+                </dl>
+            </div>
+
+            <div class="infos">
+                <h2>Search Tricks</h2>
+
+                <p>
+                    Prefix searches with a type followed by a colon (e.g.
+                    <code>fn:</code>) to restrict the search to a given type.
+                </p>
+
+                <p>
+                    Accepted types are: <code>fn</code>, <code>mod</code>,
+                    <code>struct</code>, <code>enum</code>,
+                    <code>trait</code>, <code>type</code>, <code>macro</code>,
+                    and <code>const</code>.
+                </p>
+
+                <p>
+                    Search functions by type signature (e.g.
+                    <code>vec -> usize</code> or <code>* -> vec</code>)
+                </p>
+            </div>
+        </div>
+    </aside>
+
+    
+
+    <script>
+        window.rootPath = "../";
+        window.currentCrate = "type_operators";
+    </script>
+    <script src="../jquery.js"></script>
+    <script src="../main.js"></script>
+    <script defer src="../search-index.js"></script>
+</body>
+</html>

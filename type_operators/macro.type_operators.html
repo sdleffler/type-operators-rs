@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="rustdoc">
+    <meta name="description" content="API documentation for the Rust `type_operators` macro in crate `type_operators`.">
+    <meta name="keywords" content="rust, rustlang, rust-lang, type_operators">
+
+    <title>type_operators::type_operators - Rust</title>
+
+    <link rel="stylesheet" type="text/css" href="../normalize.css">
+    <link rel="stylesheet" type="text/css" href="../rustdoc.css">
+    <link rel="stylesheet" type="text/css" href="../main.css">
+    
+
+    
+    
+</head>
+<body class="rustdoc">
+    <!--[if lte IE 8]>
+    <div class="warning">
+        This old browser is unsupported and will most likely display funky
+        things.
+    </div>
+    <![endif]-->
+
+    
+
+    <nav class="sidebar">
+        
+        <p class='location'><a href='index.html'>type_operators</a></p><script>window.sidebarCurrent = {name: 'type_operators', ty: 'macro', relpath: ''};</script><script defer src="sidebar-items.js"></script>
+    </nav>
+
+    <nav class="sub">
+        <form class="search-form js-only">
+            <div class="search-container">
+                <input class="search-input" name="search"
+                       autocomplete="off"
+                       placeholder="Click or press ‘S’ to search, ‘?’ for more options…"
+                       type="search">
+            </div>
+        </form>
+    </nav>
+
+    <section id='main' class="content macro">
+<h1 class='fqn'><span class='in-band'>Macro <a href='index.html'>type_operators</a>::<wbr><a class='macro' href=''>type_operators</a></span><span class='out-of-band'><span id='render-detail'>
+                   <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
+                       [<span class='inner'>&#x2212;</span>]
+                   </a>
+               </span><a class='srclink' href='../src/type_operators/lib.rs.html#465-546' title='goto source code'>[src]</a></span></h1>
+<pre class='rust macro'>
+<span class='macro'>macro_rules</span><span class='macro'>!</span> <span class='ident'>type_operators</span> {
+    (<span class='macro-nonterminal'>$</span><span class='macro-nonterminal'>gensym</span>:<span class='ident'>tt</span> $(<span class='attribute'>#<span class='macro-nonterminal'>$</span><span class='macro-nonterminal'>docs</span>:<span class='ident'>tt</span>)<span class='op'>*</span> <span class='ident'>data</span> <span class='macro-nonterminal'>$</span><span class='macro-nonterminal'>name</span>:<span class='ident'>ident</span>: <span class='macro-nonterminal'>$</span><span class='macro-nonterminal'>fbound</span>:<span class='ident'>ident</span> $(<span class='op'>+</span> <span class='macro-nonterminal'>$</span><span class='macro-nonterminal'>bound</span>:<span class='ident'>ident</span>)<span class='op'>*</span> <span class='kw'>where</span> $(<span class='attribute'>#<span class='macro-nonterminal'>$</span><span class='macro-nonterminal'>attr</span>:<span class='ident'>tt</span>)<span class='op'>+</span> { $(<span class='macro-nonterminal'>$</span><span class='macro-nonterminal'>stuff</span>:<span class='ident'>tt</span>)<span class='op'>*</span> } $(<span class='macro-nonterminal'>$</span><span class='macro-nonterminal'>rest</span>:<span class='ident'>tt</span>)<span class='kw-2'>*</span>) <span class='op'>=&gt;</span> { ... };
+    (<span class='macro-nonterminal'>$</span><span class='macro-nonterminal'>gensym</span>:<span class='ident'>tt</span> $(<span class='attribute'>#<span class='macro-nonterminal'>$</span><span class='macro-nonterminal'>docs</span>:<span class='ident'>tt</span>)<span class='op'>*</span> <span class='ident'>data</span> <span class='macro-nonterminal'>$</span><span class='macro-nonterminal'>name</span>:<span class='ident'>ident</span> <span class='kw'>where</span> $(<span class='attribute'>#<span class='macro-nonterminal'>$</span><span class='macro-nonterminal'>attr</span>:<span class='ident'>tt</span>)<span class='op'>+</span> { $(<span class='macro-nonterminal'>$</span><span class='macro-nonterminal'>stuff</span>:<span class='ident'>tt</span>)<span class='op'>*</span> } $(<span class='macro-nonterminal'>$</span><span class='macro-nonterminal'>rest</span>:<span class='ident'>tt</span>)<span class='kw-2'>*</span>) <span class='op'>=&gt;</span> { ... };
+    (<span class='macro-nonterminal'>$</span><span class='macro-nonterminal'>gensym</span>:<span class='ident'>tt</span> $(<span class='attribute'>#<span class='macro-nonterminal'>$</span><span class='macro-nonterminal'>docs</span>:<span class='ident'>tt</span>)<span class='op'>*</span> <span class='ident'>data</span> <span class='macro-nonterminal'>$</span><span class='macro-nonterminal'>name</span>:<span class='ident'>ident</span>: <span class='macro-nonterminal'>$</span><span class='macro-nonterminal'>fbound</span>:<span class='ident'>ident</span> $(<span class='op'>+</span> <span class='macro-nonterminal'>$</span><span class='macro-nonterminal'>bound</span>:<span class='ident'>ident</span>)<span class='op'>*</span> { $(<span class='macro-nonterminal'>$</span><span class='macro-nonterminal'>stuff</span>:<span class='ident'>tt</span>)<span class='op'>*</span> } $(<span class='macro-nonterminal'>$</span><span class='macro-nonterminal'>rest</span>:<span class='ident'>tt</span>)<span class='kw-2'>*</span>) <span class='op'>=&gt;</span> { ... };
+    (<span class='macro-nonterminal'>$</span><span class='macro-nonterminal'>gensym</span>:<span class='ident'>tt</span> $(<span class='attribute'>#<span class='macro-nonterminal'>$</span><span class='macro-nonterminal'>docs</span>:<span class='ident'>tt</span>)<span class='op'>*</span> <span class='ident'>data</span> <span class='macro-nonterminal'>$</span><span class='macro-nonterminal'>name</span>:<span class='ident'>ident</span> { $(<span class='macro-nonterminal'>$</span><span class='macro-nonterminal'>stuff</span>:<span class='ident'>tt</span>)<span class='op'>*</span> } $(<span class='macro-nonterminal'>$</span><span class='macro-nonterminal'>rest</span>:<span class='ident'>tt</span>)<span class='kw-2'>*</span>) <span class='op'>=&gt;</span> { ... };
+    (<span class='macro-nonterminal'>$</span><span class='macro-nonterminal'>gensym</span>:<span class='ident'>tt</span> $(<span class='attribute'>#<span class='macro-nonterminal'>$</span><span class='macro-nonterminal'>docs</span>:<span class='ident'>tt</span>)<span class='op'>*</span> <span class='ident'>concrete</span> <span class='macro-nonterminal'>$</span><span class='macro-nonterminal'>name</span>:<span class='ident'>ident</span>: <span class='macro-nonterminal'>$</span><span class='macro-nonterminal'>fbound</span>:<span class='ident'>ident</span> $(<span class='op'>+</span> <span class='macro-nonterminal'>$</span><span class='macro-nonterminal'>bound</span>:<span class='ident'>ident</span>)<span class='op'>*</span> <span class='op'>=&gt;</span> <span class='macro-nonterminal'>$</span><span class='macro-nonterminal'>output</span>:<span class='ident'>ty</span> <span class='kw'>where</span> $(<span class='attribute'>#<span class='macro-nonterminal'>$</span><span class='macro-nonterminal'>attr</span>:<span class='ident'>tt</span>)<span class='op'>+</span> { $(<span class='macro-nonterminal'>$</span><span class='macro-nonterminal'>stuff</span>:<span class='ident'>tt</span>)<span class='op'>*</span> } $(<span class='macro-nonterminal'>$</span><span class='macro-nonterminal'>rest</span>:<span class='ident'>tt</span>)<span class='kw-2'>*</span>) <span class='op'>=&gt;</span> { ... };
+    (<span class='macro-nonterminal'>$</span><span class='macro-nonterminal'>gensym</span>:<span class='ident'>tt</span> $(<span class='attribute'>#<span class='macro-nonterminal'>$</span><span class='macro-nonterminal'>docs</span>:<span class='ident'>tt</span>)<span class='op'>*</span> <span class='ident'>concrete</span> <span class='macro-nonterminal'>$</span><span class='macro-nonterminal'>name</span>:<span class='ident'>ident</span> <span class='op'>=&gt;</span> <span class='macro-nonterminal'>$</span><span class='macro-nonterminal'>output</span>:<span class='ident'>ty</span> <span class='kw'>where</span> $(<span class='attribute'>#<span class='macro-nonterminal'>$</span><span class='macro-nonterminal'>attr</span>:<span class='ident'>tt</span>)<span class='op'>+</span> { $(<span class='macro-nonterminal'>$</span><span class='macro-nonterminal'>stuff</span>:<span class='ident'>tt</span>)<span class='op'>*</span> } $(<span class='macro-nonterminal'>$</span><span class='macro-nonterminal'>rest</span>:<span class='ident'>tt</span>)<span class='kw-2'>*</span>) <span class='op'>=&gt;</span> { ... };
+    (<span class='macro-nonterminal'>$</span><span class='macro-nonterminal'>gensym</span>:<span class='ident'>tt</span> $(<span class='attribute'>#<span class='macro-nonterminal'>$</span><span class='macro-nonterminal'>docs</span>:<span class='ident'>tt</span>)<span class='op'>*</span> <span class='ident'>concrete</span> <span class='macro-nonterminal'>$</span><span class='macro-nonterminal'>name</span>:<span class='ident'>ident</span>: <span class='macro-nonterminal'>$</span><span class='macro-nonterminal'>fbound</span>:<span class='ident'>ident</span> $(<span class='op'>+</span> <span class='macro-nonterminal'>$</span><span class='macro-nonterminal'>bound</span>:<span class='ident'>ident</span>)<span class='op'>*</span> <span class='op'>=&gt;</span> <span class='macro-nonterminal'>$</span><span class='macro-nonterminal'>output</span>:<span class='ident'>ty</span> { $(<span class='macro-nonterminal'>$</span><span class='macro-nonterminal'>stuff</span>:<span class='ident'>tt</span>)<span class='op'>*</span> } $(<span class='macro-nonterminal'>$</span><span class='macro-nonterminal'>rest</span>:<span class='ident'>tt</span>)<span class='kw-2'>*</span>) <span class='op'>=&gt;</span> { ... };
+    (<span class='macro-nonterminal'>$</span><span class='macro-nonterminal'>gensym</span>:<span class='ident'>tt</span> $(<span class='attribute'>#<span class='macro-nonterminal'>$</span><span class='macro-nonterminal'>docs</span>:<span class='ident'>tt</span>)<span class='op'>*</span> <span class='ident'>concrete</span> <span class='macro-nonterminal'>$</span><span class='macro-nonterminal'>name</span>:<span class='ident'>ident</span> <span class='op'>=&gt;</span> <span class='macro-nonterminal'>$</span><span class='macro-nonterminal'>output</span>:<span class='ident'>ty</span> { $(<span class='macro-nonterminal'>$</span><span class='macro-nonterminal'>stuff</span>:<span class='ident'>tt</span>)<span class='op'>*</span> } $(<span class='macro-nonterminal'>$</span><span class='macro-nonterminal'>rest</span>:<span class='ident'>tt</span>)<span class='kw-2'>*</span>) <span class='op'>=&gt;</span> { ... };
+    (<span class='macro-nonterminal'>$</span><span class='macro-nonterminal'>gensym</span>:<span class='ident'>tt</span> $(<span class='attribute'>#<span class='macro-nonterminal'>$</span><span class='macro-nonterminal'>docs</span>:<span class='ident'>tt</span>)<span class='op'>*</span> (<span class='macro-nonterminal'>$</span><span class='macro-nonterminal'>alias</span>:<span class='ident'>ident</span>) <span class='macro-nonterminal'>$</span><span class='macro-nonterminal'>machine</span>:<span class='ident'>ident</span> ($(<span class='macro-nonterminal'>$</span><span class='macro-nonterminal'>kind</span>:<span class='ident'>tt</span>)<span class='kw-2'>*</span>): <span class='macro-nonterminal'>$</span><span class='macro-nonterminal'>out</span>:<span class='ident'>tt</span> <span class='kw'>where</span> $(<span class='attribute'>#<span class='macro-nonterminal'>$</span><span class='macro-nonterminal'>attr</span>:<span class='ident'>tt</span>)<span class='op'>*</span> { $(<span class='macro-nonterminal'>$</span><span class='macro-nonterminal'>states</span>:<span class='ident'>tt</span>)<span class='op'>*</span> } $(<span class='macro-nonterminal'>$</span><span class='macro-nonterminal'>rest</span>:<span class='ident'>tt</span>)<span class='kw-2'>*</span>) <span class='op'>=&gt;</span> { ... };
+    (<span class='macro-nonterminal'>$</span><span class='macro-nonterminal'>gensym</span>:<span class='ident'>tt</span> $(<span class='attribute'>#<span class='macro-nonterminal'>$</span><span class='macro-nonterminal'>docs</span>:<span class='ident'>tt</span>)<span class='op'>*</span> (<span class='macro-nonterminal'>$</span><span class='macro-nonterminal'>alias</span>:<span class='ident'>ident</span>) <span class='macro-nonterminal'>$</span><span class='macro-nonterminal'>machine</span>:<span class='ident'>ident</span> ($(<span class='macro-nonterminal'>$</span><span class='macro-nonterminal'>kind</span>:<span class='ident'>tt</span>)<span class='kw-2'>*</span>): <span class='macro-nonterminal'>$</span><span class='macro-nonterminal'>out</span>:<span class='ident'>tt</span> { $(<span class='macro-nonterminal'>$</span><span class='macro-nonterminal'>states</span>:<span class='ident'>tt</span>)<span class='op'>*</span> } $(<span class='macro-nonterminal'>$</span><span class='macro-nonterminal'>rest</span>:<span class='ident'>tt</span>)<span class='kw-2'>*</span>) <span class='op'>=&gt;</span> { ... };
+    (<span class='macro-nonterminal'>$</span><span class='macro-nonterminal'>gensym</span>:<span class='ident'>tt</span>) <span class='op'>=&gt;</span> { ... };
+}</pre>
+<div class='docblock'><p>The <code>type_operators</code> macro does a lot of different things. Specifically, there are two things
+it&#39;s meant to do:
+    1. Make declaring closed type families easier. (Although they never <em>really</em> end up closed... Good enough.)
+    2. Make declaring type operators easier. (Although there are still a lotta problems with this.)</p>
+
+<p>By &quot;closed type family&quot; here, I mean a family of structs which have a marker trait indicating that they
+&quot;belong&quot; to the family. A sort of type-level enum, if you will (if only something like that could truly
+exist in Rust some day!) And by &quot;type operator&quot;, I mean a sort of function which acts on types and returns
+a type. In the following example, the natural numbers (encoded in binary here) are our &quot;closed type family&quot;,
+and addition, subtraction, multiplication, division, etc. etc. are all our type operators.</p>
+
+<p>You should probably read the top-level documentation before you look at this more complex example.</p>
+
+<pre class='rust rust-example-rendered'>
+
+<span class='macro'>type_operators</span><span class='macro'>!</span> {
+    [<span class='ident'>A</span>, <span class='ident'>B</span>, <span class='ident'>C</span>, <span class='ident'>D</span>, <span class='ident'>E</span>] <span class='comment'>// The gensym list. Be careful not to have these collide with your struct names!</span>
+
+    <span class='comment'>// If I used `data` instead of concrete, no automatic `reify` function would be provided.</span>
+    <span class='comment'>// But since I did, we have a sort of inductive thing going on here, by which we can transform</span>
+    <span class='comment'>// any instance of this type into the reified version.</span>
+
+    <span class='comment'>// data Nat {</span>
+    <span class='comment'>//     P,</span>
+    <span class='comment'>//     I(Nat = P),</span>
+    <span class='comment'>//     O(Nat = P),</span>
+    <span class='comment'>// }</span>
+
+    <span class='ident'>concrete</span> <span class='ident'>Nat</span> <span class='op'>=&gt;</span> <span class='ident'>usize</span> {
+        <span class='ident'>P</span> <span class='op'>=&gt;</span> <span class='number'>0</span>,
+        <span class='ident'>I</span>(<span class='ident'>N</span>: <span class='ident'>Nat</span> <span class='op'>=</span> <span class='ident'>P</span>) <span class='op'>=&gt;</span> <span class='number'>1</span> <span class='op'>+</span> <span class='number'>2</span> <span class='op'>*</span> <span class='ident'>N</span>,
+        <span class='ident'>O</span>(<span class='ident'>N</span>: <span class='ident'>Nat</span> <span class='op'>=</span> <span class='ident'>P</span>) <span class='op'>=&gt;</span> <span class='number'>2</span> <span class='op'>*</span> <span class='ident'>N</span>,
+        <span class='ident'>Undefined</span> <span class='op'>=&gt;</span> <span class='macro'>panic</span><span class='macro'>!</span>(<span class='string'>&quot;Undefined type-level arithmetic result!&quot;</span>),
+    }
+
+    <span class='comment'>// It&#39;s not just for natural numbers! Yes, we can do all sorts of logic here. However, in</span>
+    <span class='comment'>// this example, `Bool` is used later on in implementations that are hidden from you due</span>
+    <span class='comment'>// to their complexity.</span>
+    <span class='ident'>concrete</span> <span class='ident'>Bool</span> <span class='op'>=&gt;</span> <span class='ident'>bool</span> {
+        <span class='ident'>False</span> <span class='op'>=&gt;</span> <span class='bool-val'>false</span>,
+        <span class='ident'>True</span> <span class='op'>=&gt;</span> <span class='bool-val'>true</span>,
+    }
+
+    (<span class='ident'>Pred</span>) <span class='ident'>Predecessor</span>(<span class='ident'>Nat</span>): <span class='ident'>Nat</span> {
+        [<span class='ident'>Undefined</span>] <span class='op'>=&gt;</span> <span class='ident'>Undefined</span>
+        [<span class='ident'>P</span>] <span class='op'>=&gt;</span> <span class='ident'>Undefined</span>
+        <span class='ident'>forall</span> (<span class='ident'>N</span>: <span class='ident'>Nat</span>) {
+            [(<span class='ident'>O</span> <span class='ident'>N</span>)] <span class='op'>=&gt;</span> (<span class='ident'>I</span> (<span class='attribute'># <span class='ident'>N</span>))
+            [(<span class='ident'>I</span> <span class='ident'>N</span>)]</span> <span class='op'>=&gt;</span> (<span class='ident'>O</span> <span class='ident'>N</span>)
+        }
+    }
+
+    (<span class='ident'>Succ</span>) <span class='ident'>Successor</span>(<span class='ident'>Nat</span>): <span class='ident'>Nat</span> {
+        [<span class='ident'>Undefined</span>] <span class='op'>=&gt;</span> <span class='ident'>Undefined</span>
+        [<span class='ident'>P</span>] <span class='op'>=&gt;</span> <span class='ident'>I</span>
+        <span class='ident'>forall</span> (<span class='ident'>N</span>: <span class='ident'>Nat</span>) {
+            [(<span class='ident'>O</span> <span class='ident'>N</span>)] <span class='op'>=&gt;</span> (<span class='ident'>I</span> <span class='ident'>N</span>)
+            [(<span class='ident'>I</span> <span class='ident'>N</span>)] <span class='op'>=&gt;</span> (<span class='ident'>O</span> (<span class='attribute'># <span class='ident'>N</span>))
+        }
+    }
+
+    (<span class='ident'>Sum</span>) <span class='ident'>Adding</span>(<span class='ident'>Nat</span>, <span class='ident'>Nat</span>): <span class='ident'>Nat</span> {
+        [<span class='ident'>P</span>, <span class='ident'>P</span>]</span> <span class='op'>=&gt;</span> <span class='ident'>P</span>
+        <span class='ident'>forall</span> (<span class='ident'>N</span>: <span class='ident'>Nat</span>) {
+            [(<span class='ident'>O</span> <span class='ident'>N</span>), <span class='ident'>P</span>] <span class='op'>=&gt;</span> (<span class='ident'>O</span> <span class='ident'>N</span>)
+            [(<span class='ident'>I</span> <span class='ident'>N</span>), <span class='ident'>P</span>] <span class='op'>=&gt;</span> (<span class='ident'>I</span> <span class='ident'>N</span>)
+            [<span class='ident'>P</span>, (<span class='ident'>O</span> <span class='ident'>N</span>)] <span class='op'>=&gt;</span> (<span class='ident'>O</span> <span class='ident'>N</span>)
+            [<span class='ident'>P</span>, (<span class='ident'>I</span> <span class='ident'>N</span>)] <span class='op'>=&gt;</span> (<span class='ident'>I</span> <span class='ident'>N</span>)
+        }
+        <span class='ident'>forall</span> (<span class='ident'>N</span>: <span class='ident'>Nat</span>, <span class='ident'>M</span>: <span class='ident'>Nat</span>) {
+            [(<span class='ident'>O</span> <span class='ident'>M</span>), (<span class='ident'>O</span> <span class='ident'>N</span>)] <span class='op'>=&gt;</span> (<span class='ident'>O</span> (<span class='attribute'># <span class='ident'>M</span> <span class='ident'>N</span>))
+            [(<span class='ident'>I</span> <span class='ident'>M</span>), (<span class='ident'>O</span> <span class='ident'>N</span>)]</span> <span class='op'>=&gt;</span> (<span class='ident'>I</span> (<span class='attribute'># <span class='ident'>M</span> <span class='ident'>N</span>))
+            [(<span class='ident'>O</span> <span class='ident'>M</span>), (<span class='ident'>I</span> <span class='ident'>N</span>)]</span> <span class='op'>=&gt;</span> (<span class='ident'>I</span> (<span class='attribute'># <span class='ident'>M</span> <span class='ident'>N</span>))
+            [(<span class='ident'>I</span> <span class='ident'>M</span>), (<span class='ident'>I</span> <span class='ident'>N</span>)]</span> <span class='op'>=&gt;</span> (<span class='ident'>O</span> (<span class='attribute'># (<span class='attribute'># <span class='ident'>M</span> <span class='ident'>N</span>) <span class='ident'>I</span>))
+        }
+    }
+
+    (<span class='ident'>Difference</span>) <span class='ident'>Subtracting</span>(<span class='ident'>Nat</span>, <span class='ident'>Nat</span>): <span class='ident'>Nat</span> {
+        <span class='ident'>forall</span> (<span class='ident'>N</span>: <span class='ident'>Nat</span>) {
+            [<span class='ident'>N</span>, <span class='ident'>P</span>]</span> <span class='op'>=&gt;</span> <span class='ident'>N</span>
+        }
+        <span class='ident'>forall</span> (<span class='ident'>N</span>: <span class='ident'>Nat</span>, <span class='ident'>M</span>: <span class='ident'>Nat</span>) {
+            [(<span class='ident'>O</span> <span class='ident'>M</span>), (<span class='ident'>O</span> <span class='ident'>N</span>)] <span class='op'>=&gt;</span> (<span class='ident'>O</span> (<span class='attribute'># <span class='ident'>M</span> <span class='ident'>N</span>))
+            [(<span class='ident'>I</span> <span class='ident'>M</span>), (<span class='ident'>O</span> <span class='ident'>N</span>)]</span> <span class='op'>=&gt;</span> (<span class='ident'>I</span> (<span class='attribute'># <span class='ident'>M</span> <span class='ident'>N</span>))
+            [(<span class='ident'>O</span> <span class='ident'>M</span>), (<span class='ident'>I</span> <span class='ident'>N</span>)]</span> <span class='op'>=&gt;</span> (<span class='ident'>I</span> (<span class='attribute'># (<span class='attribute'># <span class='ident'>M</span> <span class='ident'>N</span>) <span class='ident'>I</span>))
+            [(<span class='ident'>I</span> <span class='ident'>M</span>), (<span class='ident'>I</span> <span class='ident'>N</span>)]</span> <span class='op'>=&gt;</span> (<span class='ident'>O</span> (<span class='attribute'># <span class='ident'>M</span> <span class='ident'>N</span>))
+        }
+    }
+
+    (<span class='ident'>Product</span>) <span class='ident'>Multiplying</span>(<span class='ident'>Nat</span>, <span class='ident'>Nat</span>): <span class='ident'>Nat</span> {
+        <span class='ident'>forall</span> (<span class='ident'>N</span>: <span class='ident'>Nat</span>) {
+            [<span class='ident'>P</span>, <span class='ident'>N</span>]</span> <span class='op'>=&gt;</span> <span class='ident'>P</span>
+        }
+        <span class='ident'>forall</span> (<span class='ident'>N</span>: <span class='ident'>Nat</span>, <span class='ident'>M</span>: <span class='ident'>Nat</span>) {
+            [(<span class='ident'>O</span> <span class='ident'>M</span>), <span class='ident'>N</span>] <span class='op'>=&gt;</span> (<span class='attribute'># <span class='ident'>M</span> (<span class='ident'>O</span> <span class='ident'>N</span>))
+            [(<span class='ident'>I</span> <span class='ident'>M</span>), <span class='ident'>N</span>]</span> <span class='op'>=&gt;</span> (@<span class='ident'>Adding</span> <span class='ident'>N</span> (<span class='attribute'># <span class='ident'>M</span> (<span class='ident'>O</span> <span class='ident'>N</span>)))
+        }
+    }
+
+    (<span class='ident'>If</span>) <span class='ident'>NatIf</span>(<span class='ident'>Bool</span>, <span class='ident'>Nat</span>, <span class='ident'>Nat</span>): <span class='ident'>Nat</span> {
+        <span class='ident'>forall</span> (<span class='ident'>T</span>: <span class='ident'>Nat</span>, <span class='ident'>U</span>: <span class='ident'>Nat</span>) {
+            [<span class='ident'>True</span>, <span class='ident'>T</span>, <span class='ident'>U</span>]</span> <span class='op'>=&gt;</span> <span class='ident'>T</span>
+            [<span class='ident'>False</span>, <span class='ident'>T</span>, <span class='ident'>U</span>] <span class='op'>=&gt;</span> <span class='ident'>U</span>
+        }
+    }
+
+    (<span class='ident'>NatIsUndef</span>) <span class='ident'>NatIsUndefined</span>(<span class='ident'>Nat</span>): <span class='ident'>Bool</span> {
+        [<span class='ident'>Undefined</span>] <span class='op'>=&gt;</span> <span class='ident'>True</span>
+        [<span class='ident'>P</span>] <span class='op'>=&gt;</span> <span class='ident'>False</span>
+        <span class='ident'>forall</span> (<span class='ident'>M</span>: <span class='ident'>Nat</span>) {
+            [(<span class='ident'>O</span> <span class='ident'>M</span>)] <span class='op'>=&gt;</span> <span class='ident'>False</span>
+            [(<span class='ident'>I</span> <span class='ident'>M</span>)] <span class='op'>=&gt;</span> <span class='ident'>False</span>
+        }
+    }
+
+    (<span class='ident'>NatUndef</span>) <span class='ident'>NatUndefined</span>(<span class='ident'>Nat</span>, <span class='ident'>Nat</span>): <span class='ident'>Nat</span> {
+        <span class='ident'>forall</span> (<span class='ident'>M</span>: <span class='ident'>Nat</span>) {
+            [<span class='ident'>Undefined</span>, <span class='ident'>M</span>] <span class='op'>=&gt;</span> <span class='ident'>Undefined</span>
+            [<span class='ident'>P</span>, <span class='ident'>M</span>] <span class='op'>=&gt;</span> <span class='ident'>M</span>
+        }
+        <span class='ident'>forall</span> (<span class='ident'>M</span>: <span class='ident'>Nat</span>, <span class='ident'>N</span>: <span class='ident'>Nat</span>) {
+            [(<span class='ident'>O</span> <span class='ident'>N</span>), <span class='ident'>M</span>] <span class='op'>=&gt;</span> <span class='ident'>M</span>
+            [(<span class='ident'>I</span> <span class='ident'>N</span>), <span class='ident'>M</span>] <span class='op'>=&gt;</span> <span class='ident'>M</span>
+        }
+    }
+
+    (<span class='ident'>TotalDifference</span>) <span class='ident'>TotalSubtracting</span>(<span class='ident'>Nat</span>, <span class='ident'>Nat</span>): <span class='ident'>Nat</span> {
+        [<span class='ident'>P</span>, <span class='ident'>P</span>] <span class='op'>=&gt;</span> <span class='ident'>P</span>
+        [<span class='ident'>Undefined</span>, <span class='ident'>P</span>] <span class='op'>=&gt;</span> <span class='ident'>Undefined</span>
+        <span class='ident'>forall</span> (<span class='ident'>N</span>: <span class='ident'>Nat</span>) {
+            [<span class='ident'>N</span>, <span class='ident'>Undefined</span>] <span class='op'>=&gt;</span> <span class='ident'>Undefined</span>
+            [<span class='ident'>P</span>, (<span class='ident'>O</span> <span class='ident'>N</span>)] <span class='op'>=&gt;</span> (<span class='attribute'># <span class='ident'>P</span> <span class='ident'>N</span>)
+            [<span class='ident'>P</span>, (<span class='ident'>I</span> <span class='ident'>N</span>)]</span> <span class='op'>=&gt;</span> <span class='ident'>Undefined</span>
+            [(<span class='ident'>O</span> <span class='ident'>N</span>), <span class='ident'>P</span>] <span class='op'>=&gt;</span> (<span class='ident'>O</span> <span class='ident'>N</span>)
+            [(<span class='ident'>I</span> <span class='ident'>N</span>), <span class='ident'>P</span>] <span class='op'>=&gt;</span> (<span class='ident'>I</span> <span class='ident'>N</span>)
+            [<span class='ident'>Undefined</span>, (<span class='ident'>O</span> <span class='ident'>N</span>)] <span class='op'>=&gt;</span> <span class='ident'>Undefined</span>
+            [<span class='ident'>Undefined</span>, (<span class='ident'>I</span> <span class='ident'>N</span>)] <span class='op'>=&gt;</span> <span class='ident'>Undefined</span>
+        }
+        <span class='ident'>forall</span> (<span class='ident'>N</span>: <span class='ident'>Nat</span>, <span class='ident'>M</span>: <span class='ident'>Nat</span>) {
+            [(<span class='ident'>O</span> <span class='ident'>M</span>), (<span class='ident'>O</span> <span class='ident'>N</span>)] <span class='op'>=&gt;</span> (@<span class='ident'>NatUndefined</span> (<span class='attribute'># <span class='ident'>M</span> <span class='ident'>N</span>) (<span class='ident'>O</span> (<span class='attribute'># <span class='ident'>M</span> <span class='ident'>N</span>)))
+            [(<span class='ident'>I</span> <span class='ident'>M</span>), (<span class='ident'>O</span> <span class='ident'>N</span>)]</span> <span class='op'>=&gt;</span> (@<span class='ident'>NatUndefined</span> (<span class='attribute'># <span class='ident'>M</span> <span class='ident'>N</span>) (<span class='ident'>I</span> (<span class='attribute'># <span class='ident'>M</span> <span class='ident'>N</span>)))
+            [(<span class='ident'>O</span> <span class='ident'>M</span>), (<span class='ident'>I</span> <span class='ident'>N</span>)]</span> <span class='op'>=&gt;</span> (@<span class='ident'>NatUndefined</span> (<span class='attribute'># (<span class='attribute'># <span class='ident'>M</span> <span class='ident'>N</span>) <span class='ident'>I</span>) (<span class='ident'>I</span> (<span class='attribute'># (<span class='attribute'># <span class='ident'>M</span> <span class='ident'>N</span>) <span class='ident'>I</span>)))
+            [(<span class='ident'>I</span> <span class='ident'>M</span>), (<span class='ident'>I</span> <span class='ident'>N</span>)]</span> <span class='op'>=&gt;</span> (@<span class='ident'>NatUndefined</span> (<span class='attribute'># <span class='ident'>M</span> <span class='ident'>N</span>) (<span class='ident'>O</span> (<span class='attribute'># <span class='ident'>M</span> <span class='ident'>N</span>)))
+        }
+    }
+
+    (<span class='ident'>Quotient</span>) <span class='ident'>Quotienting</span>(<span class='ident'>Nat</span>, <span class='ident'>Nat</span>): <span class='ident'>Nat</span> {
+        <span class='ident'>forall</span> (<span class='ident'>D</span>: <span class='ident'>Nat</span>) {
+            [<span class='ident'>Undefined</span>, <span class='ident'>D</span>]</span> <span class='op'>=&gt;</span> <span class='ident'>Undefined</span>
+            [<span class='ident'>P</span>, <span class='ident'>D</span>] <span class='op'>=&gt;</span> (@<span class='ident'>NatIf</span> (@<span class='ident'>NatIsUndefined</span> (@<span class='ident'>TotalSubtracting</span> <span class='ident'>P</span> <span class='ident'>D</span>)) <span class='ident'>O</span> (@<span class='ident'>Successor</span> (<span class='attribute'># (@<span class='ident'>TotalSubtracting</span> <span class='ident'>P</span> <span class='ident'>D</span>) <span class='ident'>D</span>)))
+        }
+        <span class='ident'>forall</span> (<span class='ident'>N</span>: <span class='ident'>Nat</span>, <span class='ident'>D</span>: <span class='ident'>Nat</span>) {
+            [(<span class='ident'>O</span> <span class='ident'>N</span>), <span class='ident'>D</span>]</span> <span class='op'>=&gt;</span> (@<span class='ident'>NatIf</span> (@<span class='ident'>NatIsUndefined</span> (@<span class='ident'>TotalSubtracting</span> (<span class='ident'>O</span> <span class='ident'>N</span>) <span class='ident'>D</span>)) <span class='ident'>O</span> (@<span class='ident'>Successor</span> (<span class='attribute'># (@<span class='ident'>TotalSubtracting</span> (<span class='ident'>O</span> <span class='ident'>N</span>) <span class='ident'>D</span>) <span class='ident'>D</span>)))
+            [(<span class='ident'>I</span> <span class='ident'>N</span>), <span class='ident'>D</span>]</span> <span class='op'>=&gt;</span> (@<span class='ident'>NatIf</span> (@<span class='ident'>NatIsUndefined</span> (@<span class='ident'>TotalSubtracting</span> (<span class='ident'>I</span> <span class='ident'>N</span>) <span class='ident'>D</span>)) <span class='ident'>O</span> (@<span class='ident'>Successor</span> (<span class='attribute'># (@<span class='ident'>TotalSubtracting</span> (<span class='ident'>I</span> <span class='ident'>N</span>) <span class='ident'>D</span>) <span class='ident'>D</span>)))
+        }
+    }
+
+    (<span class='ident'>Remainder</span>) <span class='ident'>Remaindering</span>(<span class='ident'>Nat</span>, <span class='ident'>Nat</span>): <span class='ident'>Nat</span> {
+        <span class='ident'>forall</span> (<span class='ident'>D</span>: <span class='ident'>Nat</span>) {
+            [<span class='ident'>Undefined</span>, <span class='ident'>D</span>]</span> <span class='op'>=&gt;</span> <span class='ident'>Undefined</span>
+            [<span class='ident'>P</span>, <span class='ident'>D</span>] <span class='op'>=&gt;</span> (@<span class='ident'>NatIf</span> (@<span class='ident'>NatIsUndefined</span> (@<span class='ident'>TotalSubtracting</span> <span class='ident'>P</span> <span class='ident'>D</span>)) <span class='ident'>P</span> (<span class='attribute'># (@<span class='ident'>TotalSubtracting</span> <span class='ident'>P</span> <span class='ident'>D</span>) <span class='ident'>D</span>))
+        }
+        <span class='ident'>forall</span> (<span class='ident'>N</span>: <span class='ident'>Nat</span>, <span class='ident'>D</span>: <span class='ident'>Nat</span>) {
+            [(<span class='ident'>O</span> <span class='ident'>N</span>), <span class='ident'>D</span>]</span> <span class='op'>=&gt;</span> (@<span class='ident'>NatIf</span> (@<span class='ident'>NatIsUndefined</span> (@<span class='ident'>TotalSubtracting</span> (<span class='ident'>O</span> <span class='ident'>N</span>) <span class='ident'>D</span>)) (<span class='ident'>O</span> <span class='ident'>N</span>) (<span class='attribute'># (@<span class='ident'>TotalSubtracting</span> (<span class='ident'>O</span> <span class='ident'>N</span>) <span class='ident'>D</span>) <span class='ident'>D</span>))
+            [(<span class='ident'>I</span> <span class='ident'>N</span>), <span class='ident'>D</span>]</span> <span class='op'>=&gt;</span> (@<span class='ident'>NatIf</span> (@<span class='ident'>NatIsUndefined</span> (@<span class='ident'>TotalSubtracting</span> (<span class='ident'>I</span> <span class='ident'>N</span>) <span class='ident'>D</span>)) (<span class='ident'>I</span> <span class='ident'>O</span>) (<span class='attribute'># (@<span class='ident'>TotalSubtracting</span> (<span class='ident'>I</span> <span class='ident'>N</span>) <span class='ident'>D</span>) <span class='ident'>D</span>))
+        }
+    }
+}
+
+<span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='op'>&lt;</span><span class='ident'>I</span><span class='op'>&lt;</span><span class='ident'>I</span><span class='op'>&gt;</span> <span class='kw'>as</span> <span class='ident'>Nat</span><span class='op'>&gt;</span>::<span class='ident'>reify</span>(), <span class='number'>3</span>);
+<span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='op'>&lt;</span><span class='ident'>I</span><span class='op'>&lt;</span><span class='ident'>O</span><span class='op'>&lt;</span><span class='ident'>I</span><span class='op'>&gt;&gt;</span> <span class='kw'>as</span> <span class='ident'>Nat</span><span class='op'>&gt;</span>::<span class='ident'>reify</span>(), <span class='number'>5</span>);
+<span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='op'>&lt;</span><span class='ident'>Sum</span><span class='op'>&lt;</span><span class='ident'>I</span><span class='op'>&lt;</span><span class='ident'>O</span><span class='op'>&lt;</span><span class='ident'>I</span><span class='op'>&gt;&gt;</span>, <span class='ident'>I</span><span class='op'>&lt;</span><span class='ident'>I</span><span class='op'>&gt;&gt;</span> <span class='kw'>as</span> <span class='ident'>Nat</span><span class='op'>&gt;</span>::<span class='ident'>reify</span>(), <span class='number'>8</span>);
+<span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='op'>&lt;</span><span class='ident'>Difference</span><span class='op'>&lt;</span><span class='ident'>I</span><span class='op'>&lt;</span><span class='ident'>I</span><span class='op'>&gt;</span>, <span class='ident'>O</span><span class='op'>&lt;</span><span class='ident'>I</span><span class='op'>&gt;&gt;</span> <span class='kw'>as</span> <span class='ident'>Nat</span><span class='op'>&gt;</span>::<span class='ident'>reify</span>(), <span class='number'>1</span>);
+<span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='op'>&lt;</span><span class='ident'>Difference</span><span class='op'>&lt;</span><span class='ident'>O</span><span class='op'>&lt;</span><span class='ident'>O</span><span class='op'>&lt;</span><span class='ident'>O</span><span class='op'>&lt;</span><span class='ident'>I</span><span class='op'>&gt;&gt;</span><span class='op'>&gt;</span>, <span class='ident'>I</span><span class='op'>&lt;</span><span class='ident'>I</span><span class='op'>&gt;&gt;</span> <span class='kw'>as</span> <span class='ident'>Nat</span><span class='op'>&gt;</span>::<span class='ident'>reify</span>(), <span class='number'>5</span>);
+<span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='op'>&lt;</span><span class='ident'>Product</span><span class='op'>&lt;</span><span class='ident'>I</span><span class='op'>&lt;</span><span class='ident'>I</span><span class='op'>&gt;</span>, <span class='ident'>I</span><span class='op'>&lt;</span><span class='ident'>O</span><span class='op'>&lt;</span><span class='ident'>I</span><span class='op'>&gt;&gt;</span><span class='op'>&gt;</span> <span class='kw'>as</span> <span class='ident'>Nat</span><span class='op'>&gt;</span>::<span class='ident'>reify</span>(), <span class='number'>15</span>);
+<span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='op'>&lt;</span><span class='ident'>Quotient</span><span class='op'>&lt;</span><span class='ident'>I</span><span class='op'>&lt;</span><span class='ident'>I</span><span class='op'>&gt;</span>, <span class='ident'>O</span><span class='op'>&lt;</span><span class='ident'>I</span><span class='op'>&gt;&gt;</span> <span class='kw'>as</span> <span class='ident'>Nat</span><span class='op'>&gt;</span>::<span class='ident'>reify</span>(), <span class='number'>1</span>);
+<span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='op'>&lt;</span><span class='ident'>Remainder</span><span class='op'>&lt;</span><span class='ident'>I</span><span class='op'>&lt;</span><span class='ident'>O</span><span class='op'>&lt;</span><span class='ident'>O</span><span class='op'>&lt;</span><span class='ident'>I</span><span class='op'>&gt;&gt;</span><span class='op'>&gt;</span>, <span class='ident'>O</span><span class='op'>&lt;</span><span class='ident'>O</span><span class='op'>&lt;</span><span class='ident'>I</span><span class='op'>&gt;&gt;</span><span class='op'>&gt;</span> <span class='kw'>as</span> <span class='ident'>Nat</span><span class='op'>&gt;</span>::<span class='ident'>reify</span>(), <span class='number'>1</span>);</pre>
+</div></section>
+    <section id='search' class="content hidden"></section>
+
+    <section class="footer"></section>
+
+    <aside id="help" class="hidden">
+        <div>
+            <h1 class="hidden">Help</h1>
+
+            <div class="shortcuts">
+                <h2>Keyboard Shortcuts</h2>
+
+                <dl>
+                    <dt>?</dt>
+                    <dd>Show this help dialog</dd>
+                    <dt>S</dt>
+                    <dd>Focus the search field</dd>
+                    <dt>&larrb;</dt>
+                    <dd>Move up in search results</dd>
+                    <dt>&rarrb;</dt>
+                    <dd>Move down in search results</dd>
+                    <dt>&#9166;</dt>
+                    <dd>Go to active search result</dd>
+                    <dt>+</dt>
+                    <dd>Collapse/expand all sections</dd>
+                </dl>
+            </div>
+
+            <div class="infos">
+                <h2>Search Tricks</h2>
+
+                <p>
+                    Prefix searches with a type followed by a colon (e.g.
+                    <code>fn:</code>) to restrict the search to a given type.
+                </p>
+
+                <p>
+                    Accepted types are: <code>fn</code>, <code>mod</code>,
+                    <code>struct</code>, <code>enum</code>,
+                    <code>trait</code>, <code>type</code>, <code>macro</code>,
+                    and <code>const</code>.
+                </p>
+
+                <p>
+                    Search functions by type signature (e.g.
+                    <code>vec -> usize</code> or <code>* -> vec</code>)
+                </p>
+            </div>
+        </div>
+    </aside>
+
+    
+
+    <script>
+        window.rootPath = "../";
+        window.currentCrate = "type_operators";
+    </script>
+    <script src="../jquery.js"></script>
+    <script src="../main.js"></script>
+    <script defer src="../search-index.js"></script>
+</body>
+</html>
