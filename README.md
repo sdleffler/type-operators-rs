@@ -126,7 +126,7 @@ added together.
   that much closer to a proof that our little type operator always terminates with a result!
 - `I<M> + O<N>` and `O<M> + I<N>` should come out to `I<M + N>`. Again, fairly intuitive. We have `1 + 2 * m + 2 * n`,
   which we can package up into `1 + 2 * (m + n)`.
-- `I<M> + I<N>` is the trickiest part here. We have `1 + 2 * m + 1 + 2 * m == 2 + 2 * m + 2 * n == 2 * (1 + m + n)`. We
+- `I<M> + I<N>` is the trickiest part here. We have `1 + 2 * m + 1 + 2 * n == 2 + 2 * m + 2 * n == 2 * (1 + m + n)`. We
   can implement this as `I<I + M + N>`, but we can do a little bit better. More on that later, we'll head with the simpler
   implementation for now.
 
